@@ -12,11 +12,13 @@ yarn dev
 pnpm dev
 # or
 bun dev
-```
+
+
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-![Alt Text](public/website.png)
+```![Screenshot 2025-02-16 at 5 38 02 PM](https://github.com/user-attachments/assets/43678c40-0f15-4951-9e69-b6155729d71d)
+
 
 
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
