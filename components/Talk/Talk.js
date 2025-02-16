@@ -8,8 +8,8 @@ const Talk = () => {
                         <p className="mt-2 text-lg">We would love to hear from you!</p>
                     </div>
                     <a
-                        href="/contact"
-                        className="border-2 border-white text-white px-6 py-3  hover:bg-white hover:text-green-600 transition"
+                        href="/#contact"
+                        className="border-2 border-white text-white px-6 py-3    hover:bg-white hover:text-green-600 transition"
                     >
                         GET IN TOUCH
                     </a>
