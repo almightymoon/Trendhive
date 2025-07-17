@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 const featuredProducts = [
     {
@@ -66,13 +67,13 @@ const Product = () => {
                <div className="p-4">
                  {/* Product Name with Gradient Effect on Hover */}
                  <h3
-                   className="text-lg font-bold text-black transition-all duration-300 
+                   className="text-lg font-bold text-gray-600 transition-all duration-300 
                               group-hover:bg-gradient-to-r group-hover:from-green-500 group-hover:via-green-900 group-hover:to-green-500 
                               group-hover:bg-clip-text group-hover:text-transparent group-hover:animate-gradient"
                  >
                    {product.title}
                  </h3>
-                 <p className="text-gray-600 mt-2">{product.description}</p>
+                 <p className="text-gray-600 mt-2 ">{product.description}</p>
                </div>
              </Link>
            </div>
@@ -80,6 +81,7 @@ const Product = () => {
                    
                     ))}
                 </section>
+
             </section>
         </div>
     );

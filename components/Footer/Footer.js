@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 md:flex md:justify-between">
         {/* Brand & Description */}
         <div className="mb-6 md:mb-0">
-          <h2 className="text-2xl font-bold">TRENDHIVE</h2>
+          <h2 className="text-2xl font-bold">{process.env.NEXT_PUBLIC_APP_NAME}</h2>
           <p className="mt-2 text-gray-400">Your one-stop shop for trending & unique products.</p>
         </div>
 

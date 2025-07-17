@@ -6,6 +6,8 @@ import Products from "@/components/Products/Products";
 import ContactForm from "@/components/Contect_Us/Contect";
 import Footer from "@/components/Footer/Footer";
 
+
+
 export default function Home() {
   return (
     <>
@@ -15,6 +17,8 @@ export default function Home() {
       <Products />
       <ContactForm />
       <Footer />
+
+
 
     </>
   );

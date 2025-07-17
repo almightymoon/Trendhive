@@ -6,13 +6,13 @@ import Footer from "@/components/Footer/Footer";
 
 const Products = () => {
     return (
-        <> 
+        <div className="min-h-screen flex flex-col bg-[#f3f4f6]">
             <Header />
-            <main className="pt-20"> {/* Added padding to prevent content from hiding behind the header */}
+            <div className="pt-20 flex-1">
                 <Product />
-            </main>
+            </div>
             <Footer />
-        </>
+        </div>
     );
 };
 
