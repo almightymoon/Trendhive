@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 
 export async function POST(req) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, admin } = await req.json();
     
     if (!name || !email || !password) {
       return Response.json({ error: "All fields are required" }, { status: 400 });
@@ -17,7 +17,24 @@ export async function POST(req) {
     } 
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { name, email, password: hashedPassword, createdAt: new Date() };
+    // Only allow admin==1 if the request is from an authenticated admin (for security)
+    let isAdmin = 0;
+    if (admin === 1) {
+      // Check for admin token in headers
+      const authHeader = req.headers.get("authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const jwt = require("jsonwebtoken");
+        try {
+          const token = authHeader.split(" ")[1];
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const adminUser = await db.collection("users").findOne({ _id: decoded.userId && typeof decoded.userId === 'string' && decoded.userId.length === 24 ? new (await import('mongodb')).ObjectId(decoded.userId) : decoded.userId });
+          if (adminUser && adminUser.admin === 1) {
+            isAdmin = 1;
+          }
+        } catch (e) {}
+      }
+    }
+    const newUser = { name, email, password: hashedPassword, admin: isAdmin, createdAt: new Date() };
 
     await db.collection("users").insertOne(newUser);
 

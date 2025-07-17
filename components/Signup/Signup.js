@@ -17,6 +17,7 @@ const authSchemas = {
       email: z.string().email("Invalid email address"),
       password: z.string().min(8, "Password must be at least 8 characters"),
       confirmPassword: z.string(),
+      // admin field removed, always default to member
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: "Passwords do not match",

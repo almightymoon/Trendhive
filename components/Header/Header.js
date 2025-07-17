@@ -6,12 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, UserCircle, LogOut, ShoppingCart } from "lucide-react";
 import NotificationModal from "../Notification/Notification";
 import { useCart } from "@/app/Contexts/CartContext";
+import { useSession } from "@/app/Contexts/SessionContext";
+import jwt_decode from "jwt-decode";
 
 
 const Header = ({ centerNav = false }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("success"); // "success" | "error"
   const [modalMessage, setModalMessage] = useState("");
@@ -20,31 +21,17 @@ const Header = ({ centerNav = false }) => {
   const router = useRouter();
   const headerHeight = 90;
   const { cart } = useCart();
+  const { token, checkTokenValidity } = useSession();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const response = await fetch("/api/header", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-          } else {
-            throw new Error("Failed to fetch user data");
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  // Get user info from token if available
+  let userInfo = null;
+  if (token && checkTokenValidity()) {
+    try {
+      userInfo = jwt_decode(token);
+    } catch (e) {
+      userInfo = null;
+    }
+  }
 
   const handleNavigation = (e, sectionId) => {
     e.preventDefault();
@@ -66,17 +53,16 @@ const Header = ({ centerNav = false }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setUser(null);
-
+    // Optionally, you can call setToken(null) if you want to update context immediately
+    // setToken(null);
     // ✅ Show Logout Success Notification
     setModalType("success");
     setModalMessage("You have been logged out successfully.");
     setModalOpen(true);
-
     // ✅ Redirect after 1.5 seconds
     setTimeout(() => {
       setModalOpen(false);
-      router.push("/");
+      router.push("/signin");
     }, 1500);
   };
 
@@ -131,14 +117,14 @@ const Header = ({ centerNav = false }) => {
           </Link>
 
           {/* Profile icon or sign in/up links */}
-          {user ? (
+          {userInfo ? (
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center py-2 space-x-2 focus:outline-none ml-2">
                 <UserCircle size={32} className="text-green-600 hover:text-green-800 transition" />
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md border py-2 z-50">
-                  <p className="px-4 py-2 text-gray-700 font-medium">{user.name}</p>
+                  <p className="px-4 py-2 text-gray-700 font-medium">{userInfo.name || userInfo.email}</p>
                   <Link href="/profile" className="w-full">
                     <button className="w-full text-left px-4 py-2 flex items-center space-x-2 text-gray-700 hover:bg-gray-100 transition-all duration-200">
                       <span>Profile</span>

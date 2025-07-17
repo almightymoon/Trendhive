@@ -15,6 +15,7 @@ export default function AdminOrdersPage() {
   const [editPayment, setEditPayment] = useState("");
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [selectedOrders, setSelectedOrders] = useState([]);
 
   useEffect(() => {
     fetchOrders();
@@ -71,6 +72,20 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }
 
+  async function deleteSelectedOrders() {
+    if (selectedOrders.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedOrders.length} selected order(s)?`)) return;
+    for (const orderId of selectedOrders) {
+      await fetch("/api/admin/orders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _id: orderId }),
+      });
+    }
+    setSelectedOrders([]);
+    fetchOrders();
+  }
+
   // Month options for dropdown (last 12 months)
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const d = new Date();
@@ -117,6 +132,25 @@ export default function AdminOrdersPage() {
     );
   }
 
+  // Checkbox logic
+  function toggleSelectOrder(orderId) {
+    setSelectedOrders((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
+    );
+  }
+  function toggleSelectAll() {
+    if (selectedOrders.length === paginatedOrders.length) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(paginatedOrders.map((order) => order._id));
+    }
+  }
+  function isOrderSelected(orderId) {
+    return selectedOrders.includes(orderId);
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 min-h-[85vh] flex flex-col">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -124,6 +158,14 @@ export default function AdminOrdersPage() {
           <h1 className="text-2xl font-extrabold text-gray-900">Order</h1>
           <p className="text-gray-500 text-sm mt-1">{orders.length} orders found</p>
         </div>
+        {selectedOrders.length > 0 && (
+          <button
+            onClick={deleteSelectedOrders}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded shadow transition-all duration-200"
+          >
+            Delete Selected ({selectedOrders.length})
+          </button>
+        )}
         <div className="flex gap-2 items-center">
           <input
             type="text"
@@ -147,6 +189,13 @@ export default function AdminOrdersPage() {
         <table className="min-w-full text-sm text-left h-full">
           <thead>
             <tr className="bg-gray-50 text-gray-600 uppercase text-xs">
+              <th className="py-3 px-4">
+                <input
+                  type="checkbox"
+                  checked={selectedOrders.length === paginatedOrders.length && paginatedOrders.length > 0}
+                  onChange={toggleSelectAll}
+                />
+              </th>
               <th className="py-3 px-4">ID</th>
               <th className="py-3 px-4">Name</th>
               <th className="py-3 px-4">Address</th>
@@ -167,6 +216,14 @@ export default function AdminOrdersPage() {
                 }
                 onClick={() => setSelected(order._id)}
               >
+                <td className="py-3 px-4">
+                  <input
+                    type="checkbox"
+                    checked={isOrderSelected(order._id)}
+                    onChange={e => { e.stopPropagation(); toggleSelectOrder(order._id); }}
+                    onClick={e => e.stopPropagation()}
+                  />
+                </td>
                 <td className="py-3 px-4 font-mono text-xs text-gray-500">#{order._id?.toString().slice(-6)}</td>
                 <td className="py-3 px-4 flex items-center gap-2">
                   <span className="inline-block w-8 h-8 rounded-full bg-green-200 flex items-center justify-center">
