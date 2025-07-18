@@ -17,6 +17,7 @@ export default function AdminProductsPage() {
     category: "",
     mainImage: "",
     images: [],
+    brand: "",
   });
   const [mainImageUploading, setMainImageUploading] = useState(false);
   const [carouselUploading, setCarouselUploading] = useState(false);
@@ -138,36 +139,50 @@ export default function AdminProductsPage() {
       category: prod.category || "",
       mainImage: prod.mainImage || "",
       images: prod.images || [],
+      brand: prod.brand || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   async function handleProductSubmit(e) {
     e.preventDefault();
     setFormError("");
-    if (!form.name || !form.price || !form.category || !form.mainImage) {
-      setFormError("Please fill all required fields and upload images.");
+    if (!form.name || !form.price || !form.category || !form.mainImage || !form.brand) {
+      setFormError("Please fill all required fields, including Brand, and upload images.");
       return;
+    }
+    // Product ID logic: auto-generate if blank, check uniqueness if manual
+    let productId = form.productId.trim();
+    if (!productId) {
+      // Auto-generate: use name + timestamp
+      productId = (form.name.replace(/\s+/g, "-").toLowerCase() + "-" + Date.now()).slice(0, 32);
+    } else {
+      // Manual: check uniqueness
+      const exists = products.some(p => p.productId === productId && (!editingProduct || p._id !== editingProduct));
+      if (exists) {
+        setFormError("Product ID is already used by another product. Please choose a unique ID or leave blank for auto.");
+        return;
+      }
     }
     if (editingProduct) {
       await fetch("/api/admin/products", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: editingProduct, ...form, price: Number(form.price) }),
+        body: JSON.stringify({ _id: editingProduct, ...form, productId, price: Number(form.price) }),
       });
       setEditingProduct(null);
     } else {
       await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, price: Number(form.price) }),
+        body: JSON.stringify({ ...form, productId, price: Number(form.price) }),
       });
     }
-    setForm({ productId: "", name: "", price: "", shortDescription: "", description: "", category: "", mainImage: "", images: [] });
+    setForm({ productId: "", name: "", price: "", shortDescription: "", description: "", category: "", mainImage: "", images: [], brand: "" });
     fetchProducts();
   }
   function cancelEdit() {
     setEditingProduct(null);
-    setForm({ productId: "", name: "", price: "", shortDescription: "", description: "", category: "", mainImage: "", images: [] });
+    setForm({ productId: "", name: "", price: "", shortDescription: "", description: "", category: "", mainImage: "", images: [], brand: "" });
   }
   async function deleteProduct(_id) {
     if (!window.confirm("Delete this product?")) return;
@@ -206,6 +221,9 @@ export default function AdminProductsPage() {
     fetchProducts();
   }
 
+  // Collect unique brands for suggestions
+  const brandSuggestions = Array.from(new Set(products.map(p => p.brand).filter(Boolean)));
+
   return (
     <div className="flex flex-col md:flex-row gap-8">
       {/* Products Table (Left) */}
@@ -224,6 +242,23 @@ export default function AdminProductsPage() {
             <div className="flex flex-col gap-2">
               <label className="font-semibold text-gray-700">Product ID</label>
               <input name="productId" value={form.productId} onChange={handleFormChange} className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-400 transition" placeholder="Auto or manual" />
+              <span className="text-xs text-gray-400">Leave blank for auto. Must be unique.</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="font-semibold text-gray-700">Brand</label>
+              <input
+                name="brand"
+                value={form.brand}
+                onChange={handleFormChange}
+                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-400 transition"
+                list="brand-suggestions"
+                placeholder="Type or select a brand"
+              />
+              <datalist id="brand-suggestions">
+                {brandSuggestions.map((b, i) => (
+                  <option key={i} value={b} />
+                ))}
+              </datalist>
             </div>
             <div className="flex flex-col gap-2">
               <label className="font-semibold text-gray-700">Price *</label>
@@ -302,6 +337,7 @@ export default function AdminProductsPage() {
                 <th className="py-3 px-4">Feature</th>
                 <th className="py-3 px-4">Name</th>
                 <th className="py-3 px-4">Price</th>
+                <th className="py-3 px-4">Brand</th>
                 <th className="py-3 px-4">Category</th>
                 <th className="py-3 px-4">Action</th>
               </tr>
@@ -327,6 +363,7 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="py-3 px-4 font-semibold text-gray-800">{prod.name}</td>
                   <td className="py-3 px-4 text-gray-700">${prod.price?.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-gray-700">{prod.brand || '-'}</td>
                   <td className="py-3 px-4 text-gray-700">{prod.category}</td>
                   <td className="py-3 px-4 relative">
                     <button className="p-2 rounded-full hover:bg-green-100 text-green-700" onClick={e => { e.stopPropagation(); setDropdown(dropdown === prod._id ? null : prod._id); }}>

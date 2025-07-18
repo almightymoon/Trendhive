@@ -153,8 +153,17 @@ export default function AdminUsersPage() {
                 <td className="py-3 px-4">{user.dateJoined || '-'}</td>
                 <td className="py-3 px-4">{user.admin === 1 ? 'Admin' : 'User'}</td>
                 <td className="py-3 px-4">Active</td>
-                <td className="py-3 px-4">
-                  {/* Action buttons here */}
+                <td className="py-3 px-4 relative">
+                  <button className="p-2 rounded-full hover:bg-green-100 text-green-700" onClick={e => { e.stopPropagation(); setDropdown(dropdown === user._id ? null : user._id); }}>
+                    <MoreVertical size={20} />
+                  </button>
+                  {dropdown === user._id && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white border rounded-xl shadow-2xl z-50 py-2 flex flex-col gap-1 animate-fade-in">
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded transition" onClick={() => { setDropdown(null); alert(JSON.stringify(user, null, 2)); }}>View</button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded transition" onClick={() => openEdit(user)}>Edit</button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 rounded transition" onClick={() => handleDelete(user._id)}>Delete</button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

@@ -5,9 +5,19 @@ import { ObjectId } from "mongodb";
 export async function GET(req) {
   const db = await connectToDatabase();
   const url = req?.url || "";
+  const { searchParams } = new URL(url, "http://localhost");
+  const id = searchParams.get("id");
   const isFeatured = url.includes("featured=true");
   let products;
-  if (isFeatured) {
+  if (id) {
+    // Fetch by _id
+    try {
+      products = await db.collection("products").find({ _id: new ObjectId(id) }).toArray();
+    } catch (e) {
+      // Invalid ObjectId
+      products = [];
+    }
+  } else if (isFeatured) {
     products = await db.collection("products").find({ featured: true }).limit(3).toArray();
   } else {
     products = await db.collection("products").find({}).toArray();

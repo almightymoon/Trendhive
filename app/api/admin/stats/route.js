@@ -38,10 +38,24 @@ export async function GET() {
   const weekAgo = new Date();
   weekAgo.setDate(now.getDate() - 6);
   let salesByDay = await db.collection("orders").aggregate([
-    { $match: { createdAt: { $gte: weekAgo } } },
+    { $match: { createdAt: { $gte: weekAgo }, status: { $in: ["Paid", "paid"] } } },
     { $group: {
       _id: { $dateToString: { format: "%w", date: "$createdAt" } },
-      sales: { $sum: "$amount" },
+      sales: {
+        $sum: {
+          $cond: [
+            { $ne: ["$amount", null] },
+            { $toDouble: "$amount" },
+            {
+              $cond: [
+                { $ne: ["$price", null] },
+                { $toDouble: "$price" },
+                0
+              ]
+            }
+          ]
+        }
+      },
       count: { $sum: 1 }
     } },
     { $sort: { _id: 1 } }

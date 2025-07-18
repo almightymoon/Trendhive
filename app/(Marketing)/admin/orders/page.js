@@ -212,11 +212,13 @@ export default function AdminOrdersPage() {
                 </td>
                 <td className="py-3 px-4 relative">
                   <button className="p-2 rounded-full hover:bg-green-100 text-green-700" onClick={e => { e.stopPropagation(); setDropdown(dropdown === order._id ? null : order._id); }}>
-                    <Settings size={16} />
+                    <MoreVertical size={20} />
                   </button>
                   {dropdown === order._id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                      {/* Dropdown content */}
+                    <div className="absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow-2xl z-50 py-2 flex flex-col gap-1 animate-fade-in">
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded transition" onClick={() => { setDropdown(null); alert(JSON.stringify(order, null, 2)); }}>View</button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 rounded transition" onClick={() => { setDropdown(null); openEdit(order); }}>Edit</button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 rounded transition" onClick={() => { setDropdown(null); deleteOrder(order); }}>Delete</button>
                     </div>
                   )}
                 </td>
