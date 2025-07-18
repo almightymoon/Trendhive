@@ -85,27 +85,34 @@ export default function CartPage() {
               </div>
               <ul className="divide-y divide-gray-100">
                 {cart.map((item) => (
-                  <li key={item.id} className="grid grid-cols-2 md:grid-cols-5 gap-4 py-4 items-center">
-                    {/* Product Details */}
-                    <div className="flex items-center gap-4 col-span-2">
-                      <img src={item.image || item.images?.[0]} alt={item.title} className="w-16 h-16 object-cover rounded" />
-                      <div>
-                        <p className="font-semibold text-gray-800">{item.title}</p>
-                        <p className="text-xs text-gray-400">Product Code</p>
+                  <li key={item._id} className="grid grid-cols-2 md:grid-cols-5 gap-4 py-4 items-center">
+                    {/* Product Details + Quantity (mobile) */}
+                    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 col-span-2">
+                      <div className="flex items-center gap-4">
+                        <img src={item.image || item.images?.[0]} alt={item.title || item.name} className="w-16 h-16 object-cover rounded" />
+                        <div>
+                          <p className="font-semibold text-gray-800">{item.title || item.name}</p>
+                        </div>
+                      </div>
+                      {/* Quantity controls (mobile only) */}
+                      <div className="flex items-center gap-2 md:hidden mt-2">
+                        <button onClick={() => decrementQuantity(item._id)} className="w-8 h-8 rounded border border-gray-300 text-lg font-bold hover:bg-gray-100">-</button>
+                        <span className="w-8 text-center">{item.quantity}</span>
+                        <button onClick={() => incrementQuantity(item._id)} className="w-8 h-8 rounded border border-gray-300 text-lg font-bold hover:bg-gray-100">+</button>
                       </div>
                     </div>
-                    {/* Quantity */}
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => decrementQuantity(item.id)} className="w-8 h-8 rounded border border-gray-300 text-lg font-bold hover:bg-gray-100">-</button>
+                    {/* Quantity (desktop only) */}
+                    <div className="hidden md:flex items-center gap-2">
+                      <button onClick={() => decrementQuantity(item._id)} className="w-8 h-8 rounded border border-gray-300 text-lg font-bold hover:bg-gray-100">-</button>
                       <span className="w-8 text-center">{item.quantity}</span>
-                      <button onClick={() => incrementQuantity(item.id)} className="w-8 h-8 rounded border border-gray-300 text-lg font-bold hover:bg-gray-100">+</button>
+                      <button onClick={() => incrementQuantity(item._id)} className="w-8 h-8 rounded border border-gray-300 text-lg font-bold hover:bg-gray-100">+</button>
                     </div>
                     {/* Price */}
                     <div className="text-gray-700 font-medium">${item.price.toLocaleString()}</div>
                     {/* Total */}
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-gray-900">${(item.price * item.quantity).toLocaleString()}</span>
-                      <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500 text-xl ml-2">&times;</button>
+                      <button onClick={() => removeFromCart(item._id)} className="text-gray-400 hover:text-red-500 text-xl ml-2">&times;</button>
                     </div>
                   </li>
                 ))}

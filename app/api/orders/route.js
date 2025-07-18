@@ -1,9 +1,33 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/app/utils/mongodb';
+import jwt from 'jsonwebtoken';
+
+export async function GET(req) {
+  try {
+    const db = await connectToDatabase();
+    const auth = req.headers.get('authorization');
+    if (!auth || !auth.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const token = auth.split(' ')[1];
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.userId;
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    // Find orders for this user
+    const orders = await db.collection('orders').find({ userId }).sort({ createdAt: -1 }).toArray();
+    return NextResponse.json(orders);
+  } catch (err) {
+    return NextResponse.json({ error: 'Failed to load orders', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+  }
+}
 
 export async function POST(req) {
   try {
-    const { amount, products, paymentMethod, paypalOrderId, status, currency, paypalDetails } = await req.json();
+    const { amount, products, paymentMethod, paypalOrderId, status, currency, paypalDetails, userId } = await req.json();
     const db = await connectToDatabase();
 
     // Extract user info for PayPal orders
@@ -41,6 +65,7 @@ export async function POST(req) {
       currency,
       paypalDetails,
       user,
+      userId,
       date,
       createdAt: new Date(),
     });

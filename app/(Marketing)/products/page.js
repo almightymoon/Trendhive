@@ -28,7 +28,7 @@ const Products = () => {
                     />
                 </div>
                 {/* Main Product Grid with mobile filter bar above */}
-                <div className="flex-1 w-full">
+                <div className="flex-1 w-full md:ml-8">
                     {/* Mobile filter bar and modals */}
                     <div className="block md:hidden">
                         <ProductsSidebar
@@ -40,12 +40,14 @@ const Products = () => {
                             setSearch={setSearch}
                         />
                     </div>
-                    <Product
-                        showHero={false}
-                        filterCategory={selectedCategory}
-                        filterBrand={selectedBrand}
-                        filterSearch={search}
-                    />
+                    <div className="pt-6 md:pt-0"> {/* Add top padding for mobile */}
+                        <Product
+                            showHero={false}
+                            filterCategory={selectedCategory}
+                            filterBrand={selectedBrand}
+                            filterSearch={search}
+                        />
+                    </div>
                 </div>
             </div>
             <Footer />

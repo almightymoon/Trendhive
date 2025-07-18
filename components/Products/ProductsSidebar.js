@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Tag, Store } from "lucide-react";
+import { Tag, Store, ArrowLeft, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function Modal({ open, onClose, title, options, selected, onSelect, searchPlaceholder }) {
   const [search, setSearch] = useState("");
@@ -8,7 +9,7 @@ function Modal({ open, onClose, title, options, selected, onSelect, searchPlaceh
     !search.trim() || opt.label.toLowerCase().includes(search.trim().toLowerCase())
   );
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white animate-fade-in fixed top-0 left-0 w-full h-full">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white animate-fade-in  top-0 left-0 w-full h-full">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white z-10">
         <h2 className="text-lg font-bold text-green-700">{title}</h2>
         <button
@@ -66,6 +67,7 @@ export default function ProductsSidebar({
   const [loading, setLoading] = useState(true);
   const [catModal, setCatModal] = useState(false);
   const [brandModal, setBrandModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -145,24 +147,56 @@ export default function ProductsSidebar({
             ))}
           </ul>
         </div>
+        {/* Clear Filters Button (desktop only) */}
+        <button
+          className="mt-4 w-full py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition text-sm md:block hidden"
+          onClick={() => { setSelectedCategory(null); setSelectedBrand(null); }}
+        >
+          Clear Filters
+        </button>
         {loading && <div className="text-center text-gray-400 text-xs">Loading...</div>}
       </aside>
 
-      {/* Mobile Temu-style Filter Bar */}
-      <div className="md:hidden sticky top-16 z-30 bg-white border-b border-gray-100 flex items-center gap-2 px-2 py-2 overflow-x-auto no-scrollbar">
+      {/* Mobile Temu-style Filter Bar (fixed) with back and clear buttons */}
+      <div className="md:hidden fixed top-16 pt-4  left-0 right-0 z-40 bg-white border-b border-gray-100 flex items-center gap-2 px-2 py-2 overflow-x-auto no-scrollbar shadow-sm">
         <button
-          className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm shadow-sm border transition whitespace-nowrap ${selectedCategory ? "bg-green-500 text-white border-green-500" : "bg-green-100 text-green-700 border-green-200"}`}
+          className="flex items-center justify-center w-9 h-9 rounded-full bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 transition"
+          onClick={() => router.back()}
+          aria-label="Back"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <button
+          className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm shadow-sm border transition whitespace-nowrap relative ${selectedCategory ? "bg-green-500 text-white border-green-500" : "bg-green-100 text-green-700 border-green-200"}`}
           onClick={() => setCatModal(true)}
         >
           <Tag size={18} className="inline-block" />
           {selectedCategory || "Categories"}
+          {selectedCategory && (
+            <span
+              className="absolute -top-2 -right-2 bg-white border border-green-500 rounded-full p-0.5 shadow cursor-pointer"
+              onClick={e => { e.stopPropagation(); setSelectedCategory(null); }}
+              aria-label="Clear category"
+            >
+              <X size={14} className="text-green-500" />
+            </span>
+          )}
         </button>
         <button
-          className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm shadow-sm border transition whitespace-nowrap ${selectedBrand ? "bg-green-500 text-white border-green-500" : "bg-green-100 text-green-700 border-green-200"}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm shadow-sm border transition whitespace-nowrap relative ${selectedBrand ? "bg-green-500 text-white border-green-500" : "bg-green-100 text-green-700 border-green-200"}`}
           onClick={() => setBrandModal(true)}
         >
           <Store size={18} className="inline-block" />
           {selectedBrand || "Brands"}
+          {selectedBrand && (
+            <span
+              className="absolute -top-2 -right-2 bg-white border border-green-500 rounded-full p-0.5 shadow cursor-pointer"
+              onClick={e => { e.stopPropagation(); setSelectedBrand(null); }}
+              aria-label="Clear brand"
+            >
+              <X size={14} className="text-green-500" />
+            </span>
+          )}
         </button>
         <input
           type="text"

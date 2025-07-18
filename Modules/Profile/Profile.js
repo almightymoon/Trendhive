@@ -1,4 +1,4 @@
-import Sidebar from "@/components/Sidebar/Sidebar";
+import UserSidebar from "@/components/Sidebar/UserSidebar";
 import ProfilePage from "@/components/Profile_Page/Profile_Page";
 
 const Profile =()=>{
@@ -6,7 +6,7 @@ const Profile =()=>{
         <>
         <div className=" min-h-screen bg-gray-100 flex">
 
-        <Sidebar/>
+        <UserSidebar/>
         <ProfilePage/>
         </div>
         </>

@@ -72,42 +72,43 @@ const Header = ({ centerNav = false }) => {
     <header className="fixed w-full bg-white shadow-md z-50">
       <NotificationModal isOpen={modalOpen} setIsOpen={setModalOpen} type={modalType} message={modalMessage} />
 
-      <div className={`container mx-auto max-w-6xl px-6 py-4 flex items-center ${centerNav ? 'justify-center' : 'justify-between'}`}>
+      <div className="container mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
         <Link href="/" className="cursor-pointer">
           <h1 className="text-3xl font-extrabold bg-gradient-to-r from-green-500 via-green-700 to-green-500 bg-clip-text text-transparent animate-gradient tracking-wide">
             {process.env.NEXT_PUBLIC_APP_NAME}
           </h1>
         </Link>
-
         <button className="md:hidden block text-gray-700 focus:outline-none" aria-label="Open menu" onClick={() => setMenuOpen(true)}>
           <Menu size={28} />
         </button>
-
-        <nav className="hidden md:flex space-x-8 items-center">
-          <button
-            onClick={(e) => handleNavigation(e, 'Home')}
-            className="text-gray-700 hover:text-green-500 text-lg font-medium tracking-wide transition-all duration-300"
-          >
-            Home
-          </button>
-          <button
-            onClick={(e) => handleNavigation(e, 'About')}
-            className="text-gray-700 hover:text-green-500 text-lg font-medium tracking-wide transition-all duration-300"
-          >
-            About
-          </button>
-          <Link href="/products" className="text-gray-700 hover:text-green-500 text-lg font-medium tracking-wide transition-all duration-300">
-            Products
-          </Link>
-
-          <button
-            onClick={(e) => handleNavigation(e, 'contact')}
-            className="px-6 py-2 rounded-md border border-green-500 font-semibold bg-gradient-to-r from-green-500 via-green-600 to-green-500 text-white hover:bg-gradient-to-l hover:scale-105 transform transition-all duration-300 shadow-lg hover:shadow-green-500/50"
-          >
-            Contact
-          </button>
-
-          {/* Cart icon before profile/signin */}
+        {/* Centered nav links (desktop only) */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <nav className="flex space-x-8 items-center">
+            <button
+              onClick={(e) => handleNavigation(e, 'Home')}
+              className="text-gray-700 hover:text-green-500 text-lg font-medium tracking-wide transition-all duration-300"
+            >
+              Home
+            </button>
+            <button
+              onClick={(e) => handleNavigation(e, 'About')}
+              className="text-gray-700 hover:text-green-500 text-lg font-medium tracking-wide transition-all duration-300"
+            >
+              About
+            </button>
+            <Link href="/products" className="text-gray-700 hover:text-green-500 text-lg font-medium tracking-wide transition-all duration-300">
+              Products
+            </Link>
+            <button
+              onClick={(e) => handleNavigation(e, 'contact')}
+              className="px-6 py-2 rounded-md border border-green-500 font-semibold bg-gradient-to-r from-green-500 via-green-600 to-green-500 text-white hover:bg-gradient-to-l hover:scale-105 transform transition-all duration-300 shadow-lg hover:shadow-green-500/50"
+            >
+              Contact
+            </button>
+          </nav>
+        </div>
+        {/* Cart and profile/signin section (desktop only) */}
+        <div className="hidden md:flex items-center gap-8 ml-auto">
           <Link href="/cart" className="relative group ml-4 mr-2 focus:outline-none">
             <ShoppingCart size={28} className="text-gray-700 group-hover:text-green-600 transition" />
             {cart.length > 0 && (
@@ -116,8 +117,6 @@ const Header = ({ centerNav = false }) => {
               </span>
             )}
           </Link>
-
-          {/* Profile icon or sign in/up links */}
           {userInfo ? (
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center py-2 space-x-2 focus:outline-none ml-2">
@@ -151,7 +150,7 @@ const Header = ({ centerNav = false }) => {
               </Link>
             </div>
           )}
-        </nav>
+        </div>
       </div>
 
       {/* Mobile Menu & Backdrop */}

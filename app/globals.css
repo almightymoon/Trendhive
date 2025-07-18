@@ -23,3 +23,9 @@ body {
   background-size: 200% 200%;
   animation: gradientAnimation 3s ease infinite;
 }
+
+/* Lower PayPal button z-index to prevent overlap with header */
+iframe[src*="paypal.com"] {
+  z-index: 10 !important;
+  position: relative !important;
+}

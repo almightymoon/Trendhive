@@ -4,9 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { ShoppingCart, ArrowLeft } from "lucide-react";
+import { useCart } from "@/app/Contexts/CartContext";
+import { useRouter } from "next/navigation";
+
+const ADD_SOUND_URL = "https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae5b2.mp3"; // short pop sound
+
+const isMobile = () => typeof window !== "undefined" && window.innerWidth < 768;
 
 const Product = ({ featuredOnly = false, showHero = true, filterCategory, filterBrand, filterTrending, filterSearch }) => {
     const [products, setProducts] = useState([]);
+    const [animatingId, setAnimatingId] = useState(null);
+    const { addToCart } = useCart();
+    const router = useRouter();
     useEffect(() => {
         const url = featuredOnly ? "/api/admin/products?featured=true" : "/api/admin/products";
         fetch(url)
@@ -33,6 +43,22 @@ const Product = ({ featuredOnly = false, showHero = true, filterCategory, filter
             p.description?.toLowerCase().includes(searchLower)
         );
     }
+
+    // Play sound on mobile
+    const playAddSound = () => {
+        if (isMobile()) {
+            const audio = new Audio(ADD_SOUND_URL);
+            audio.play();
+        }
+    };
+
+    // Add to cart animation handler
+    const handleAddToCart = (product) => {
+        setAnimatingId(product._id);
+        addToCart(product);
+        playAddSound();
+        setTimeout(() => setAnimatingId(null), 700);
+    };
     
     if (showHero) {
         // Show hero section with up to 3 featured products
@@ -50,7 +76,7 @@ const Product = ({ featuredOnly = false, showHero = true, filterCategory, filter
                         </h1>
                     </div>
                     {/* PRODUCT GRID */}
-                    <section className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <section className="max-w-7xl mx-auto px-6 md:px-12  lg:px-20 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
                         {featuredProducts.length === 0 ? (
                             <div className="col-span-3 text-center text-gray-500 py-20 text-xl">No featured products yet.</div>
                         ) : featuredProducts.map((product) => (
@@ -89,7 +115,9 @@ const Product = ({ featuredOnly = false, showHero = true, filterCategory, filter
     } else {
         // Show all products in a grid
         return (
-            <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="max-w-7xl mx-auto px-6  lg:px-20 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Mobile back button */}
+
                 {filteredProducts.length === 0 ? (
                     <div className="col-span-3 text-center text-gray-500 py-20 text-xl">No products found.</div>
                 ) : filteredProducts.map((product) => (
@@ -119,5 +147,7 @@ const Product = ({ featuredOnly = false, showHero = true, filterCategory, filter
         );
     }
 };
+
+// Remove AddToCartButton from this file
 
 export default Product;

@@ -51,11 +51,11 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+      const existing = prev.find((item) => item._id === product._id);
       let updated;
       if (existing) {
         updated = prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
         updated = [...prev, { ...product, quantity: 1 }];
@@ -65,9 +65,9 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  const removeFromCart = (id) => {
+  const removeFromCart = (_id) => {
     setCart((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
+      const updated = prev.filter((item) => item._id !== _id);
       persistCart(updated);
       return updated;
     });
@@ -81,30 +81,30 @@ export const CartProvider = ({ children }) => {
   const getTotal = () =>
     cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const incrementQuantity = (id) => {
+  const incrementQuantity = (_id) => {
     setCart((prev) => {
       const updated = prev.map((item) =>
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+        item._id === _id ? { ...item, quantity: item.quantity + 1 } : item
       );
       persistCart(updated);
       return updated;
     });
   };
 
-  const decrementQuantity = (id) => {
+  const decrementQuantity = (_id) => {
     setCart((prev) => {
       const updated = prev.map((item) =>
-      item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
+        item._id === _id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
       );
       persistCart(updated);
       return updated;
     });
   };
 
-  const setQuantity = (id, quantity) => {
+  const setQuantity = (_id, quantity) => {
     setCart((prev) => {
       const updated = prev.map((item) =>
-      item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+        item._id === _id ? { ...item, quantity: Math.max(1, quantity) } : item
       );
       persistCart(updated);
       return updated;

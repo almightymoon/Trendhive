@@ -31,9 +31,12 @@ export async function GET(req) {
     const userData = {
       name: user.name,
       email: user.email,
-      phone: user.phone || "", // Add phone if it exists
-
-
+      phone: user.phone || "",
+      address: user.address || "",
+      city: user.city || "",
+      state: user.state || "",
+      country: user.country || "",
+      avatar: user.avatar || ""
     };
 
     return NextResponse.json(userData);
@@ -60,7 +63,7 @@ export async function PUT(req) {
     }
 
     // Parse request body
-    const { name, phone } = await req.json();
+    const { name, phone, address, city, state, country, avatar } = await req.json();
 
     // Connect to MongoDB
     const db = await connectToDatabase();
@@ -69,7 +72,7 @@ export async function PUT(req) {
     // Update user data
     const result = await usersCollection.updateOne(
       { email: decoded.email },
-      { $set: { name, phone,  } }
+      { $set: { name, phone, address, city, state, country, avatar } }
     );
 
     if (result.modifiedCount === 0) {
