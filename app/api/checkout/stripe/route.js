@@ -24,7 +24,7 @@ export async function POST(req) {
     // Ensure base URL is absolute and has a scheme
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.startsWith("http")
       ? process.env.NEXT_PUBLIC_BASE_URL
-      : "http://localhost:3001";
+      : process.env.NEXT_PUBLIC_BASE_URL;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
