@@ -152,50 +152,26 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 min-h-[85vh] flex flex-col">
+    <div className="bg-white rounded-xl shadow-lg min-h-[85vh] p-2 sm:p-4 md:p-6 flex flex-col">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">Order</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Orders</h1>
           <p className="text-gray-500 text-sm mt-1">{orders.length} orders found</p>
         </div>
-        {selectedOrders.length > 0 && (
-          <button
-            onClick={deleteSelectedOrders}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded shadow transition-all duration-200"
-          >
-            Delete Selected ({selectedOrders.length})
-          </button>
-        )}
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center w-full md:w-auto">
           <input
             type="text"
             placeholder="Search orders..."
             value={search}
             onChange={handleSearchChange}
-            className="border rounded px-3 py-2 text-sm focus:ring focus:ring-green-200"
+            className="border rounded px-3 py-2 text-sm focus:ring focus:ring-green-200 w-full md:w-auto"
           />
-          <select value={month} onChange={handleMonthChange} className="border rounded px-3 py-2 text-sm">
-            <option value="">All Months</option>
-            {monthOptions.map((m) => (
-              <option key={m} value={m}>{new Date(m + "-01").toLocaleString("default", { month: "long", year: "numeric" })}</option>
-            ))}
-          </select>
-          <button onClick={handleRefresh} className="p-2 rounded-full hover:bg-green-100 text-green-700" title="Refresh">
-            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
-          </button>
         </div>
       </div>
       <div className="overflow-x-auto flex-1 rounded-lg">
-        <table className="min-w-full text-sm text-left h-full">
+        <table className="min-w-[800px] w-full text-sm text-left h-full">
           <thead>
             <tr className="bg-gray-50 text-gray-600 uppercase text-xs">
-              <th className="py-3 px-4">
-                <input
-                  type="checkbox"
-                  checked={selectedOrders.length === paginatedOrders.length && paginatedOrders.length > 0}
-                  onChange={toggleSelectAll}
-                />
-              </th>
               <th className="py-3 px-4">ID</th>
               <th className="py-3 px-4">Name</th>
               <th className="py-3 px-4">Address</th>
@@ -216,14 +192,6 @@ export default function AdminOrdersPage() {
                 }
                 onClick={() => setSelected(order._id)}
               >
-                <td className="py-3 px-4">
-                  <input
-                    type="checkbox"
-                    checked={isOrderSelected(order._id)}
-                    onChange={e => { e.stopPropagation(); toggleSelectOrder(order._id); }}
-                    onClick={e => e.stopPropagation()}
-                  />
-                </td>
                 <td className="py-3 px-4 font-mono text-xs text-gray-500">#{order._id?.toString().slice(-6)}</td>
                 <td className="py-3 px-4 flex items-center gap-2">
                   <span className="inline-block w-8 h-8 rounded-full bg-green-200 flex items-center justify-center">
@@ -248,9 +216,7 @@ export default function AdminOrdersPage() {
                   </button>
                   {dropdown === order._id && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700" onClick={() => { setDropdown(null); alert(JSON.stringify(order, null, 2)); }}>View</button>
-                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700" onClick={() => { setDropdown(null); openEdit(order); }}>Edit</button>
-                      <button className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600" onClick={() => { setDropdown(null); deleteOrder(order); }}>Delete</button>
+                      {/* Dropdown content */}
                     </div>
                   )}
                 </td>
