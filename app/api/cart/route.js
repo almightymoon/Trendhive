@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/app/utils/mongodb";
 
+
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");

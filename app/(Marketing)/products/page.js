@@ -9,7 +9,7 @@ const Products = () => {
         <div className="min-h-screen flex flex-col bg-[#f3f4f6]">
             <Header />
             <div className="pt-20 flex-1">
-                <Product />
+                <Product showHero={false} />
             </div>
             <Footer />
         </div>

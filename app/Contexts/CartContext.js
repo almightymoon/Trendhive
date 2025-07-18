@@ -84,7 +84,7 @@ export const CartProvider = ({ children }) => {
   const incrementQuantity = (id) => {
     setCart((prev) => {
       const updated = prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
       );
       persistCart(updated);
       return updated;
@@ -94,7 +94,7 @@ export const CartProvider = ({ children }) => {
   const decrementQuantity = (id) => {
     setCart((prev) => {
       const updated = prev.map((item) =>
-        item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
+      item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
       );
       persistCart(updated);
       return updated;
@@ -104,7 +104,7 @@ export const CartProvider = ({ children }) => {
   const setQuantity = (id, quantity) => {
     setCart((prev) => {
       const updated = prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+      item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
       );
       persistCart(updated);
       return updated;

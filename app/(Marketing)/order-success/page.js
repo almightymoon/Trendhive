@@ -10,18 +10,20 @@ export default function OrderSuccessPage() {
   const [error, setError] = useState("");
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
+  const order_id = searchParams.get("order_id");
   const router = useRouter();
 
   useEffect(() => {
-    if (!session_id) {
-      setError("No session_id found in URL.");
+    if (!session_id && !order_id) {
+      setError("No order_id or session_id found in URL.");
       setLoading(false);
       return;
     }
+    const body = session_id ? { session_id } : { order_id };
     fetch("/api/orders/confirm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_id }),
+      body: JSON.stringify(body),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -36,7 +38,7 @@ export default function OrderSuccessPage() {
         setError("Server error. Please try again later.");
         setLoading(false);
       });
-  }, [session_id]);
+  }, [session_id, order_id]);
 
   return (
     <>
@@ -87,7 +89,7 @@ export default function OrderSuccessPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {order.items?.map((item, idx) => (
+                  {(order.items || order.products)?.map((item, idx) => (
                     <tr key={idx} className="border-b last:border-none">
                       <td className="py-2 px-2">{item.title || item.name}</td>
                       <td className="py-2 px-2 text-center">{item.quantity || 1}</td>

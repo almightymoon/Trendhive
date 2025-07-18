@@ -50,7 +50,7 @@ export const SessionProvider = ({ children }) => {
     function handleStorage(e) {
       if (e.key === "token") {
         refreshSession();
-      }
+    }
     }
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);

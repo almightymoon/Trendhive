@@ -6,12 +6,13 @@ import Footer from "@/components/Footer/Footer";
 import { useState } from "react";
 import Bubbles from "@/components/Bubble/Bubble";
 import jwt_decode from "jwt-decode";
+import PayPalButton from "@/components/PayPalButton";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, getTotal, incrementQuantity, decrementQuantity } = useCart();
   const [delivery, setDelivery] = useState("free");
   const [loadingStripe, setLoadingStripe] = useState(false);
-  const [loadingPaypal, setLoadingPaypal] = useState(false);
 
   async function handleStripeCheckout() {
     setLoadingStripe(true);
@@ -35,22 +36,6 @@ export default function CartPage() {
       window.location.href = data.url;
     } else {
       alert("Stripe checkout failed");
-    }
-  }
-
-  async function handlePaypalCheckout() {
-    setLoadingPaypal(true);
-    const res = await fetch("/api/checkout/paypal", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cart })
-    });
-    const data = await res.json();
-    setLoadingPaypal(false);
-    if (data.orderId) {
-      alert("PayPal Order ID: " + data.orderId + " (Integrate PayPal JS SDK for full flow)");
-    } else {
-      alert("PayPal checkout failed");
     }
   }
 
@@ -149,14 +134,33 @@ export default function CartPage() {
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M20.5 7.5h-17a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h17a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1Zm-17-2A3 3 0 0 0 .5 8.5v7a3 3 0 0 0 3 3h17a3 3 0 0 0 3-3v-7a3 3 0 0 0-3-3h-17Z"/><path fill="#fff" d="M7.5 12.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm5 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm5 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
                 {loadingStripe ? "Redirecting..." : "Pay with Stripe"}
               </button>
-              <button
-                className="w-full py-3 bg-yellow-400 text-black rounded-lg font-bold hover:bg-yellow-500 transition text-lg flex items-center justify-center gap-2 shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400 mt-2 disabled:opacity-60"
-                onClick={handlePaypalCheckout}
-                disabled={loadingPaypal}
-              >
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="#003087" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2Z"/><path fill="#fff" d="M16.5 13.5h-9v-3h9v3Z"/></svg>
-                {loadingPaypal ? "Processing..." : "PayPal"}
-              </button>
+              <div className="w-full mt-2">
+                {/* Map cart items to PayPal format to ensure all required fields are present */}
+                {/** Each item must have title, price, quantity, description (optional) **/}
+                {/** This matches the logic from the product details page **/}
+                {(() => {
+                  const paypalProducts = cart.map(item => ({
+                    title: item.title || item.name || "Product",
+                    price: Number(item.price),
+                    quantity: Number(item.quantity) || 1,
+                    description: item.description || item.shortDescription || "",
+                  }));
+                  return (
+                    <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test" }}>
+                      <PayPalButton
+                        amount={getTotal().toFixed(2)}
+                        products={paypalProducts}
+                        onSuccess={({ details, orderId }) => {
+                          clearCart();
+                          const idStr = orderId && orderId.toString ? orderId.toString() : orderId;
+                          window.location.href = `/order-success?order_id=${idStr}`;
+                        }}
+                        onError={err => alert("PayPal error: " + err)}
+                      />
+                    </PayPalScriptProvider>
+                  );
+                })()}
+              </div>
               <div className="mb-2 text-gray-500 text-sm">We Accept</div>
               <div className="flex gap-3 mb-2">
                 <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" className="h-6" />

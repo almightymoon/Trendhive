@@ -10,17 +10,21 @@ export async function POST(req) {
     if (!cart || !Array.isArray(cart) || cart.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
-    const line_items = cart.map(item => ({
+    const line_items = cart.map(item => {
+      // Fallbacks for Stripe requirements
+      const name = item.title || item.name || "Product";
+      const image = item.image || item.mainImage;
+      const product_data = { name };
+      if (image) product_data.images = [image];
+      return {
       price_data: {
         currency: "usd",
-        product_data: {
-          name: item.title,
-          images: [item.image],
-        },
+          product_data,
         unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
-    }));
+      };
+    });
     // Ensure base URL is absolute and has a scheme
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.startsWith("http")
       ? process.env.NEXT_PUBLIC_BASE_URL
