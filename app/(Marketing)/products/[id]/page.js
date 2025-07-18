@@ -96,7 +96,8 @@ export default function ProductPage() {
         const result = await res.json();
         setLoadingPaypal(false);
         if (result.success) {
-          alert("PayPal payment successful!");
+          const idStr = orderId && orderId.toString ? orderId.toString() : orderId;
+          window.location.href = `/order-success?order_id=${idStr}`;
         } else {
           setPaypalError(result.error || "PayPal payment failed");
         }
@@ -211,7 +212,10 @@ export default function ProductPage() {
                             <PayPalButton
                                 amount={product?.price || 0}
                                 products={paypalProducts}
-                                onSuccess={() => setPaypalSuccess(true)}
+                                onSuccess={({ details, orderId }) => {
+                                  const idStr = orderId && orderId.toString ? orderId.toString() : orderId;
+                                  window.location.href = `/order-success?order_id=${idStr}`;
+                                }}
                                 onError={err => setPaypalError(err)}
                             />
                         </PayPalScriptProvider>

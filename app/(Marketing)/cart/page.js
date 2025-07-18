@@ -151,7 +151,7 @@ export default function CartPage() {
                         amount={getTotal().toFixed(2)}
                         products={paypalProducts}
                         onSuccess={({ details, orderId }) => {
-                          clearCart();
+
                           const idStr = orderId && orderId.toString ? orderId.toString() : orderId;
                           window.location.href = `/order-success?order_id=${idStr}`;
                         }}
