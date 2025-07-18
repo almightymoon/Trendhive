@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
-const Product = ({ featuredOnly = false, showHero = true }) => {
+const Product = ({ featuredOnly = false, showHero = true, filterCategory, filterBrand, filterTrending, filterSearch }) => {
     const [products, setProducts] = useState([]);
     useEffect(() => {
         const url = featuredOnly ? "/api/admin/products?featured=true" : "/api/admin/products";
@@ -14,9 +14,29 @@ const Product = ({ featuredOnly = false, showHero = true }) => {
             .then(data => setProducts(data));
     }, [featuredOnly]);
     
+    // Filtering logic
+    let filteredProducts = products;
+    if (filterCategory) {
+        filteredProducts = filteredProducts.filter(p => p.category === filterCategory);
+    }
+    if (filterBrand) {
+        filteredProducts = filteredProducts.filter(p => p.brand === filterBrand);
+    }
+    if (filterTrending) {
+        filteredProducts = filteredProducts.filter(p => p.featured === true);
+    }
+    if (filterSearch && filterSearch.trim()) {
+        const searchLower = filterSearch.trim().toLowerCase();
+        filteredProducts = filteredProducts.filter(p =>
+            p.name?.toLowerCase().includes(searchLower) ||
+            p.shortDescription?.toLowerCase().includes(searchLower) ||
+            p.description?.toLowerCase().includes(searchLower)
+        );
+    }
+    
     if (showHero) {
         // Show hero section with up to 3 featured products
-        const featuredProducts = products.filter(p => p.featured).slice(0, 3);
+        const featuredProducts = filteredProducts.filter(p => p.featured).slice(0, 3);
         return (
             <div id="Products" className="relative w-full">
                 {/* HERO SECTION */}
@@ -70,9 +90,9 @@ const Product = ({ featuredOnly = false, showHero = true }) => {
         // Show all products in a grid
         return (
             <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-                {products.length === 0 ? (
+                {filteredProducts.length === 0 ? (
                     <div className="col-span-3 text-center text-gray-500 py-20 text-xl">No products found.</div>
-                ) : products.map((product) => (
+                ) : filteredProducts.map((product) => (
                     <div
                         key={product._id}
                         className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-2xl group"
