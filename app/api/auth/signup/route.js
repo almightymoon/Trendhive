@@ -36,9 +36,28 @@ export async function POST(req) {
     }
     const newUser = { name, email, password: hashedPassword, admin: isAdmin, createdAt: new Date() };
 
-    await db.collection("users").insertOne(newUser);
+    const result = await db.collection("users").insertOne(newUser);
+    
+    // Generate token for the new user
+    const jwt = require("jsonwebtoken");
+    const token = jwt.sign({ userId: result.insertedId, email: newUser.email, admin: newUser.admin }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    return Response.json({ message: "User registered successfully" }, { status: 201 });
+    // Return user data without password
+    const userData = {
+      id: result.insertedId,
+      email: newUser.email,
+      name: newUser.name,
+      admin: newUser.admin,
+      phone: '',
+      address: '',
+      city: '',
+      country: '',
+      state: '',
+      avatar: '',
+      createdAt: newUser.createdAt
+    };
+
+    return Response.json({ message: "User registered successfully", token, user: userData }, { status: 201 });
   } catch (error) {
     console.error("Signup error:", error);
     return Response.json({ error: "Internal Server Error" }, { status: 500 });

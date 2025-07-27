@@ -143,7 +143,7 @@ export default function AboutScreen({ navigation }) {
           
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => handleOpenLink('https://trendhive.com')}
+            onPress={() => handleOpenLink('http://217.196.51.104:4000')}
           >
             <Ionicons name="globe" size={20} color="#10B981" />
             <Text style={styles.linkText}>Visit Our Website</Text>
@@ -152,7 +152,7 @@ export default function AboutScreen({ navigation }) {
 
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => handleOpenLink('mailto:info@trendhive.com')}
+            onPress={() => handleOpenLink('mailto:almightymooon@gmail.com')}
           >
             <Ionicons name="mail" size={20} color="#10B981" />
             <Text style={styles.linkText}>Email Us</Text>
@@ -161,7 +161,7 @@ export default function AboutScreen({ navigation }) {
 
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => handleOpenLink('https://trendhive.com/privacy')}
+            onPress={() => handleOpenLink('https://217.196.51.104:4000/privacy')}
           >
             <Ionicons name="shield" size={20} color="#10B981" />
             <Text style={styles.linkText}>Privacy Policy</Text>
@@ -170,7 +170,7 @@ export default function AboutScreen({ navigation }) {
 
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => handleOpenLink('https://trendhive.com/terms')}
+            onPress={() => handleOpenLink('https://217.196.51.104:4000/terms')}
           >
             <Ionicons name="document-text" size={20} color="#10B981" />
             <Text style={styles.linkText}>Terms of Service</Text>

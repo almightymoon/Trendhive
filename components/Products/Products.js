@@ -96,14 +96,14 @@ const Product = ({ featuredOnly = false, showHero = true, filterCategory, filter
                                     </div>
                                     <div className="p-4">
                                         <h3
-                                            className="text-lg font-bold text-gray-600 transition-all duration-300 \
+                                            className="text-lg font-bold text-black transition-all duration-300 \
                                                 group-hover:bg-gradient-to-r group-hover:from-green-500 group-hover:via-green-900 group-hover:to-green-500 \
                                                 group-hover:bg-clip-text group-hover:text-transparent group-hover:animate-gradient"
                                         >
                                             {product.name}
                                         </h3>
                                         <div className="text-green-700 font-semibold text-lg mt-1">${product.price?.toLocaleString()}</div>
-                                        <p className="text-gray-600 mt-2 ">{product.shortDescription || product.description}</p>
+                                        <p className="text-gray-800 mt-2 ">{product.shortDescription || product.description}</p>
                                     </div>
                                 </Link>
                             </div>
@@ -136,9 +136,9 @@ const Product = ({ featuredOnly = false, showHero = true, filterCategory, filter
                                 />
                             </div>
                             <div className="p-4">
-                                <h3 className="text-lg font-bold text-gray-600">{product.name}</h3>
+                                <h3 className="text-lg font-bold text-black">{product.name}</h3>
                                 <div className="text-green-700 font-semibold text-lg mt-1">${product.price?.toLocaleString()}</div>
-                                <p className="text-gray-600 mt-2 ">{product.shortDescription || product.description}</p>
+                                <p className="text-gray-800 mt-2 ">{product.shortDescription || product.description}</p>
                             </div>
                         </Link>
                     </div>

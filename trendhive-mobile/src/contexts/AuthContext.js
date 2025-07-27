@@ -43,6 +43,11 @@ export const AuthProvider = ({ children }) => {
       const response = await apiService.signIn(email, password);
       const { token: authToken, user: userData } = response;
       
+      // Validate that we have valid data before storing
+      if (!authToken || !userData) {
+        throw new Error('Invalid response from server');
+      }
+      
       setToken(authToken);
       setUser(userData);
       
@@ -80,6 +85,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiService.signUp(userData);
       const { token: authToken, user: newUser } = response;
+      
+      // Validate that we have valid data before storing
+      if (!authToken || !newUser) {
+        throw new Error('Invalid response from server');
+      }
       
       setToken(authToken);
       setUser(newUser);
@@ -121,8 +131,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (newUserData) => {
-    setUser(newUserData);
-    AsyncStorage.setItem('user', JSON.stringify(newUserData));
+    if (newUserData) {
+      setUser(newUserData);
+      AsyncStorage.setItem('user', JSON.stringify(newUserData));
+    }
   };
 
   const value = {
