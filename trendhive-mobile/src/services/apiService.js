@@ -115,12 +115,12 @@ class ApiService {
   }
 
   async changePassword(passwordData) {
-    return this.api.post('/profile/change-password', passwordData);
+    return this.api.patch('/profile', passwordData);
   }
 
   // Addresses
   async getAddresses(userId) {
-    return this.api.get('/addresses', { params: { userId } });
+    return this.api.get('/addresses');
   }
 
   async addAddress(addressData) {
@@ -128,11 +128,11 @@ class ApiService {
   }
 
   async updateAddress(addressId, addressData) {
-    return this.api.put(`/addresses/${addressId}`, addressData);
+    return this.api.put('/addresses', { addressId, ...addressData });
   }
 
   async deleteAddress(addressId) {
-    return this.api.delete(`/addresses/${addressId}`);
+    return this.api.delete('/addresses', { data: { addressId } });
   }
 
   // Notifications

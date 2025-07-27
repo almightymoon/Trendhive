@@ -73,7 +73,8 @@ export default function SecurityScreen({ navigation }) {
       
       const response = await apiService.changePassword(passwordData);
       
-      if (response.success) {
+      // Handle both old and new response formats
+      if (response.success || response.message) {
         Alert.alert(
           'Success',
           'Password changed successfully!',
@@ -158,6 +159,23 @@ export default function SecurityScreen({ navigation }) {
                   onPress={() => setShowOldPassword(!showOldPassword)}
                 />
               }
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: errors.oldPassword ? '#ef4444' : '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
             {errors.oldPassword ? <Text style={styles.errorText}>{errors.oldPassword}</Text> : null}
 
@@ -177,6 +195,23 @@ export default function SecurityScreen({ navigation }) {
                   onPress={() => setShowNewPassword(!showNewPassword)}
                 />
               }
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: errors.newPassword ? '#ef4444' : '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
             {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
 
@@ -196,6 +231,23 @@ export default function SecurityScreen({ navigation }) {
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 />
               }
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: errors.confirmPassword ? '#ef4444' : '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
             {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
 

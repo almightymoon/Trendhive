@@ -24,9 +24,12 @@ export const WishlistProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    console.log('WishlistContext: User changed:', user ? 'User logged in' : 'No user');
     if (user) {
+      console.log('WishlistContext: Loading wishlist for user:', user.id || user._id);
       loadWishlist();
     } else {
+      console.log('WishlistContext: No user, clearing wishlist');
       setWishlistItems([]);
       setLoading(false);
     }
@@ -34,18 +37,21 @@ export const WishlistProvider = ({ children }) => {
 
   const loadWishlist = async () => {
     try {
+      setLoading(true);
       const storageKey = getStorageKey();
+      console.log('WishlistContext: Loading wishlist from storage:', storageKey);
       const savedWishlist = await AsyncStorage.getItem(storageKey);
-      console.log('Loading wishlist from storage:', storageKey, savedWishlist ? 'found' : 'not found');
+      console.log('WishlistContext: Saved wishlist found:', savedWishlist ? 'Yes' : 'No');
       if (savedWishlist) {
         const parsedWishlist = JSON.parse(savedWishlist);
-        console.log('Loaded wishlist items:', parsedWishlist.length);
+        console.log('WishlistContext: Loaded wishlist items:', parsedWishlist.length);
         setWishlistItems(parsedWishlist);
       } else {
+        console.log('WishlistContext: No saved wishlist, setting empty array');
         setWishlistItems([]);
       }
     } catch (error) {
-      console.error('Error loading wishlist:', error);
+      console.error('WishlistContext: Error loading wishlist:', error);
       setWishlistItems([]);
     } finally {
       setLoading(false);
@@ -65,12 +71,12 @@ export const WishlistProvider = ({ children }) => {
 
   const addToWishlist = (product) => {
     if (!user) {
-      console.log('No user logged in, cannot add to wishlist');
+      console.log('WishlistContext: No user logged in, cannot add to wishlist');
       return false;
     }
 
     const productId = product._id || product.id || product.productId;
-    console.log('Adding to wishlist:', product.name, 'ID:', productId);
+    console.log('WishlistContext: Adding to wishlist:', product.name, 'ID:', productId);
     
     const existingItem = wishlistItems.find(item => {
       const itemId = item._id || item.id || item.productId;
@@ -78,12 +84,12 @@ export const WishlistProvider = ({ children }) => {
     });
 
     if (existingItem) {
-      console.log('Product already in wishlist');
+      console.log('WishlistContext: Product already in wishlist');
       return false;
     }
 
     const newWishlist = [...wishlistItems, product];
-    console.log('New wishlist items:', newWishlist.length);
+    console.log('WishlistContext: New wishlist items:', newWishlist.length);
     setWishlistItems(newWishlist);
     saveWishlist(newWishlist);
     return true;
@@ -91,28 +97,37 @@ export const WishlistProvider = ({ children }) => {
 
   const removeFromWishlist = (product) => {
     const productId = product._id || product.id || product.productId;
+    console.log('WishlistContext: Removing from wishlist:', product.name, 'ID:', productId);
     const newWishlist = wishlistItems.filter(item => {
       const itemId = item._id || item.id || item.productId;
       return itemId !== productId;
     });
+    console.log('WishlistContext: Wishlist after removal:', newWishlist.length);
     setWishlistItems(newWishlist);
     saveWishlist(newWishlist);
   };
 
   const isInWishlist = (product) => {
     const productId = product._id || product.id || product.productId;
-    return wishlistItems.some(item => {
+    const result = wishlistItems.some(item => {
       const itemId = item._id || item.id || item.productId;
       return itemId === productId;
     });
+    console.log('WishlistContext: Checking if product in wishlist:', product.name, 'Result:', result);
+    return result;
   };
 
   const clearWishlist = () => {
+    console.log('WishlistContext: Clearing wishlist');
     setWishlistItems([]);
     saveWishlist([]);
   };
 
-  const getWishlistCount = () => wishlistItems.length;
+  const getWishlistCount = () => {
+    const count = wishlistItems.length;
+    console.log('WishlistContext: Wishlist count:', count);
+    return count;
+  };
 
   const value = {
     wishlistItems,

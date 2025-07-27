@@ -132,6 +132,12 @@ export default function SignUpScreen({ navigation }) {
                   onSurface: '#000000',
                   surface: 'white',
                   outline: '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
                 }
               }}
             />
@@ -151,6 +157,12 @@ export default function SignUpScreen({ navigation }) {
                   onSurface: '#000000',
                   surface: 'white',
                   outline: '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
                 }
               }}
             />
@@ -175,6 +187,12 @@ export default function SignUpScreen({ navigation }) {
                 onSurface: '#000000',
                 surface: 'white',
                 outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
               }
             }}
           />
@@ -196,6 +214,12 @@ export default function SignUpScreen({ navigation }) {
                 onSurface: '#000000',
                 surface: 'white',
                 outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
               }
             }}
           />
@@ -224,6 +248,12 @@ export default function SignUpScreen({ navigation }) {
                 onSurface: '#000000',
                 surface: 'white',
                 outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
               }
             }}
           />
@@ -252,6 +282,12 @@ export default function SignUpScreen({ navigation }) {
                 onSurface: '#000000',
                 surface: 'white',
                 outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
               }
             }}
           />

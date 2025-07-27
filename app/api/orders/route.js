@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/app/utils/mongodb';
 import jwt from 'jsonwebtoken';
 
@@ -7,7 +6,7 @@ export async function GET(req) {
     const db = await connectToDatabase();
     const auth = req.headers.get('authorization');
     if (!auth || !auth.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const token = auth.split(' ')[1];
     let userId;
@@ -15,13 +14,39 @@ export async function GET(req) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       userId = decoded.userId;
     } catch (e) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return Response.json({ error: 'Invalid token' }, { status: 401 });
     }
+    
     // Find orders for this user
     const orders = await db.collection('orders').find({ userId }).sort({ createdAt: -1 }).toArray();
-    return NextResponse.json(orders);
+    
+    // Ensure all orders have proper fields
+    const formattedOrders = orders.map(order => ({
+      _id: order._id,
+      orderNumber: order.orderNumber || order._id.toString().slice(-8).toUpperCase(),
+      orderId: order._id,
+      amount: order.amount || 0,
+      total: order.amount || order.price || 0,
+      price: order.price || order.amount || 0,
+      products: order.products || order.items || [],
+      items: order.items || order.products || [],
+      productName: order.productName || '',
+      paymentMethod: order.paymentMethod || 'Unknown',
+      paypalOrderId: order.paypalOrderId || null,
+      status: order.status || 'Pending',
+      currency: order.currency || 'usd',
+      paypalDetails: order.paypalDetails || null,
+      user: order.user || {},
+      userId: order.userId,
+      date: order.date || order.createdAt,
+      createdAt: order.createdAt,
+      shippingInfo: order.shippingInfo || {},
+      paymentIntentId: order.paymentIntentId || null
+    }));
+    
+    return Response.json(formattedOrders);
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to load orders', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    return Response.json({ error: 'Failed to load orders', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -69,8 +94,8 @@ export async function POST(req) {
       date,
       createdAt: new Date(),
     });
-    return NextResponse.json({ success: true, orderId: result.insertedId });
+    return Response.json({ success: true, orderId: result.insertedId });
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to save order', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    return Response.json({ error: 'Failed to save order', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

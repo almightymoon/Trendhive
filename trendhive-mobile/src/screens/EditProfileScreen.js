@@ -28,9 +28,14 @@ export default function EditProfileScreen({ navigation }) {
 
   useEffect(() => {
     if (user) {
+      // Split the name into first and last name
+      const nameParts = (user.name || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
       setFormData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
+        firstName: firstName,
+        lastName: lastName,
         email: user.email || '',
         phone: user.phone || '',
         dateOfBirth: user.dateOfBirth || '',
@@ -74,11 +79,29 @@ export default function EditProfileScreen({ navigation }) {
       }
       
       const userId = user._id || user.id;
-      const profileData = { ...formData, userId };
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+      
+      const profileData = { 
+        name: fullName,
+        email: formData.email,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        userId 
+      };
       
       const response = await apiService.updateProfile(profileData);
-      if (response.success) {
-        updateUser(response.user);
+      
+      // Handle both old and new response formats
+      if (response.success || response.message) {
+        // Update the user object with the new data
+        const updatedUser = {
+          ...user,
+          name: fullName,
+          email: formData.email,
+          phone: formData.phone,
+          dateOfBirth: formData.dateOfBirth,
+        };
+        updateUser(updatedUser);
         Alert.alert('Success', 'Profile updated successfully!');
         navigation.goBack();
       } else {
@@ -120,6 +143,23 @@ export default function EditProfileScreen({ navigation }) {
               mode="outlined"
               style={[styles.input, errors.firstName ? styles.inputError : null]}
               error={!!errors.firstName}
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: errors.firstName ? '#ef4444' : '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
             {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
 
@@ -130,6 +170,23 @@ export default function EditProfileScreen({ navigation }) {
               mode="outlined"
               style={[styles.input, errors.lastName ? styles.inputError : null]}
               error={!!errors.lastName}
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: errors.lastName ? '#ef4444' : '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
             {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
 
@@ -143,6 +200,23 @@ export default function EditProfileScreen({ navigation }) {
               autoCapitalize="none"
               autoCorrect={false}
               error={!!errors.email}
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: errors.email ? '#ef4444' : '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
             {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
@@ -154,6 +228,23 @@ export default function EditProfileScreen({ navigation }) {
               style={[styles.input, errors.phone ? styles.inputError : null]}
               keyboardType="phone-pad"
               error={!!errors.phone}
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: errors.phone ? '#ef4444' : '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
             {errors.phone ? <Text style={styles.errorText}>{errors.phone}</Text> : null}
 
@@ -164,6 +255,23 @@ export default function EditProfileScreen({ navigation }) {
               mode="outlined"
               style={styles.input}
               placeholder="MM/DD/YYYY"
+              theme={{
+                colors: {
+                  primary: '#10B981',
+                  text: '#000000',
+                  placeholder: '#666666',
+                  background: 'white',
+                  onSurface: '#000000',
+                  surface: 'white',
+                  outline: '#d1d5db',
+                  onSurfaceVariant: '#10B981',
+                  primaryContainer: '#10B981',
+                  onPrimaryContainer: '#ffffff',
+                  secondary: '#10B981',
+                  secondaryContainer: '#10B981',
+                  onSecondaryContainer: '#ffffff',
+                }
+              }}
             />
 
             <View style={styles.buttonContainer}>

@@ -155,6 +155,12 @@ export default function SignInScreen({ navigation }) {
                 onSurface: '#000000',
                 surface: 'white',
                 outline: emailError ? '#ef4444' : '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
               }
             }}
           />
@@ -188,6 +194,12 @@ export default function SignInScreen({ navigation }) {
                 onSurface: '#000000',
                 surface: 'white',
                 outline: passwordError ? '#ef4444' : '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
               }
             }}
           />
