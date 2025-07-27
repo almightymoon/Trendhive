@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/app/utils/mongodb';
 import jwt from 'jsonwebtoken';
+import { ObjectId } from 'mongodb'; // Added for PUT/DELETE by _id
 
 export async function GET(req) {
   try {
@@ -69,13 +70,13 @@ export async function PUT(req) {
     // If this address is marked as default, unset other defaults
     if (isDefault) {
       await db.collection('addresses').updateMany(
-        { userId, _id: { $ne: addressId } },
+        { userId, _id: { $ne: new ObjectId(addressId) } }, // Use ObjectId for comparison
         { $set: { isDefault: false } }
       );
     }
 
     const result = await db.collection('addresses').updateOne(
-      { _id: addressId, userId },
+      { _id: new ObjectId(addressId), userId }, // Use ObjectId for comparison
       { 
         $set: {
           fullName,
@@ -109,7 +110,7 @@ export async function DELETE(req) {
     const { addressId, userId } = await req.json();
     const db = await connectToDatabase();
 
-    const result = await db.collection('addresses').deleteOne({ _id: addressId, userId });
+    const result = await db.collection('addresses').deleteOne({ _id: new ObjectId(addressId), userId }); // Use ObjectId for comparison
     
     if (result.deletedCount === 0) {
       return Response.json({ error: 'Address not found' }, { status: 404 });

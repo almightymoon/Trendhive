@@ -50,17 +50,26 @@ export default function CheckoutScreen({ navigation }) {
     try {
       const userId = user._id || user.id;
       const response = await apiService.getAddresses(userId);
-      if (response.success) {
-        setSavedAddresses(response.addresses || []);
+      
+      // Handle both old and new response formats
+      if (Array.isArray(response)) {
+        // New format: response is directly an array of addresses
+        setSavedAddresses(response);
+      } else if (response.success && response.addresses) {
+        // Old format: response has success and addresses properties
+        setSavedAddresses(response.addresses);
+      } else {
+        setSavedAddresses([]);
       }
     } catch (error) {
       console.error('Error loading saved addresses:', error);
+      setSavedAddresses([]);
     }
   };
 
   const handleSelectAddress = (address) => {
     setShippingInfo({
-      fullName: address.name || '',
+      fullName: address.name || address.fullName || '',
       email: user?.email || '',
       phone: address.phone || '',
       address: address.address || '',
@@ -202,7 +211,7 @@ export default function CheckoutScreen({ navigation }) {
                 onPress={() => handleSelectAddress(address)}
               >
                 <View style={styles.addressContent}>
-                  <Text style={styles.addressName}>{address.name}</Text>
+                  <Text style={styles.addressName}>{address.name || address.fullName}</Text>
                   <Text style={styles.addressText}>{address.address}</Text>
                   <Text style={styles.addressText}>
                     {address.city}, {address.state} {address.zipCode}
