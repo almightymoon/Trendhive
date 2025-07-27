@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/app/utils/mongodb";
 import { ObjectId } from "mongodb";
 
@@ -22,7 +21,7 @@ export async function GET(req) {
       try {
         query._id = new ObjectId(id);
       } catch (e) {
-        return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
+        return Response.json({ error: "Invalid product ID" }, { status: 400 });
       }
     }
 
@@ -52,9 +51,9 @@ export async function GET(req) {
       .sort({ createdAt: -1 })
       .toArray();
 
-    return NextResponse.json(products);
+    return Response.json(products, { status: 200 });
   } catch (error) {
     console.error("Error fetching products:", error);
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    return Response.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 } 
