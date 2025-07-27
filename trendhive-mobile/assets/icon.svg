@@ -1,0 +1,38 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F0FDF4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="480" fill="url(#bgGradient)" stroke="#FFFFFF" stroke-width="8"/>
+  
+  <!-- Shopping bag -->
+  <path d="M320 320 L320 280 C320 240 352 208 392 208 L632 208 C672 208 704 240 704 280 L704 320 L800 320 L800 720 C800 760 768 792 728 792 L296 792 C256 792 224 760 224 720 L224 320 L320 320 Z" fill="url(#iconGradient)"/>
+  
+  <!-- Bag handles -->
+  <path d="M320 320 L320 360 C320 380 336 396 356 396 L668 396 C688 396 704 380 704 360 L704 320" stroke="#10B981" stroke-width="12" fill="none"/>
+  
+  <!-- Trend lines -->
+  <path d="M400 480 L480 440 L560 460 L640 420 L720 440" stroke="#10B981" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M400 520 L480 480 L560 500 L640 460 L720 480" stroke="#10B981" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M400 560 L480 520 L560 540 L640 500 L720 520" stroke="#10B981" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5"/>
+  
+  <!-- Trend dots -->
+  <circle cx="480" cy="440" r="6" fill="#10B981"/>
+  <circle cx="560" cy="460" r="6" fill="#10B981"/>
+  <circle cx="640" cy="420" r="6" fill="#10B981"/>
+  <circle cx="720" cy="440" r="6" fill="#10B981"/>
+  
+  <!-- Sparkle elements -->
+  <path d="M360 360 L370 350 L380 360 L370 370 Z" fill="#FFFFFF" opacity="0.8"/>
+  <path d="M680 360 L690 350 L700 360 L690 370 Z" fill="#FFFFFF" opacity="0.8"/>
+  <path d="M520 680 L530 670 L540 680 L530 690 Z" fill="#FFFFFF" opacity="0.6"/>
+</svg> 

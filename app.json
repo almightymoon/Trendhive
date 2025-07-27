@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "8f8eb8c9-be5c-4438-b77d-60e3db6e2169"
+      }
+    },
+    "android": {
+      "package": "com.almightymoon.trendhive"
+    }
+  }
+}

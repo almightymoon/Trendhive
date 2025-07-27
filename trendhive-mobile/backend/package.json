@@ -1,0 +1,30 @@
+{
+  "name": "trendhive-backend",
+  "version": "1.0.0",
+  "description": "TrendHive Mobile App Backend",
+  "main": "server.prod.js",
+  "scripts": {
+    "start": "node server.prod.js",
+    "dev": "nodemon server.prod.js",
+    "build": "echo 'No build step required'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": ["trendhive", "backend", "api", "mobile"],
+  "author": "TrendHive Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "mongodb": "^6.3.0",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+} 

@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:full": "concurrently \"npm run dev\" \"cd trendhive-mobile/backend && npm run dev\"",
+    "start:full": "concurrently \"npm run start\" \"cd trendhive-mobile/backend && npm run start\""
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -18,6 +20,8 @@
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.7.0",
+    "expo-auth-session": "^6.2.1",
+    "expo-web-browser": "^14.2.0",
     "framer-motion": "^12.4.3",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^3.1.2",
@@ -38,6 +42,7 @@
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.10",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.5",
     "postcss": "^8.5.2",

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: trendhive-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_NAME
+        value: test
+      - key: JWT_SECRET
+        value: trendhive-secret-key-2024
+      - key: MONGODB_URI
+        sync: false # You'll need to set this manually 
