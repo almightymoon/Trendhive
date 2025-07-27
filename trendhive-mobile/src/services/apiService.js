@@ -131,8 +131,8 @@ class ApiService {
     return this.api.put('/addresses', { addressId, ...addressData });
   }
 
-  async deleteAddress(addressId) {
-    return this.api.delete('/addresses', { data: { addressId } });
+  async deleteAddress(addressId, userId) {
+    return this.api.delete('/addresses', { data: { addressId, userId } });
   }
 
   // Notifications

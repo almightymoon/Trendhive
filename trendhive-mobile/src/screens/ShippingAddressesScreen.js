@@ -46,11 +46,20 @@ export default function ShippingAddressesScreen({ navigation }) {
       const userId = user._id || user.id;
       console.log('Loading addresses for user:', userId);
       const response = await apiService.getAddresses(userId);
-      if (response.success) {
-        setAddresses(response.addresses || []);
+      
+      // Handle both old and new response formats
+      if (Array.isArray(response)) {
+        // New format: response is directly an array of addresses
+        setAddresses(response);
+      } else if (response.success && response.addresses) {
+        // Old format: response has success and addresses properties
+        setAddresses(response.addresses);
+      } else {
+        setAddresses([]);
       }
     } catch (error) {
       console.error('Load addresses error:', error);
+      setAddresses([]);
     } finally {
       setLoading(false);
     }
@@ -102,10 +111,15 @@ export default function ShippingAddressesScreen({ navigation }) {
       }
       
       const userId = user._id || user.id;
-      const addressData = { ...formData, userId };
+      // Convert name to fullName to match backend expectations
+      const addressData = { 
+        ...formData, 
+        fullName: formData.name, // Convert name to fullName
+        userId 
+      };
       
       const response = editingAddress
-        ? await apiService.updateAddress(editingAddress.id, formData)
+        ? await apiService.updateAddress(editingAddress.id, addressData)
         : await apiService.addAddress(addressData);
 
       if (response.success) {
@@ -136,7 +150,12 @@ export default function ShippingAddressesScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const response = await apiService.deleteAddress(addressId);
+              if (!user || (!user._id && !user.id)) {
+                Alert.alert('Error', 'User not authenticated');
+                return;
+              }
+              const userId = user._id || user.id;
+              const response = await apiService.deleteAddress(addressId, userId);
               if (response.success) {
                 Alert.alert('Success', 'Address deleted successfully!');
                 loadAddresses();
@@ -156,7 +175,7 @@ export default function ShippingAddressesScreen({ navigation }) {
   const handleEditAddress = (address) => {
     setEditingAddress(address);
     setFormData({
-      name: address.name || '',
+      name: address.name || address.fullName || '', // Handle both name and fullName
       phone: address.phone || '',
       address: address.address || '',
       city: address.city || '',
@@ -300,7 +319,7 @@ export default function ShippingAddressesScreen({ navigation }) {
       <Card.Content>
         <View style={styles.addressHeader}>
           <View style={styles.addressInfo}>
-            <Text style={styles.addressName}>{address.name}</Text>
+            <Text style={styles.addressName}>{address.name || address.fullName}</Text>
             {address.isDefault && (
               <View style={styles.defaultBadge}>
                 <Text style={styles.defaultText}>Default</Text>
@@ -316,7 +335,7 @@ export default function ShippingAddressesScreen({ navigation }) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => handleDeleteAddress(address.id)}
+              onPress={() => handleDeleteAddress(address._id || address.id)}
             >
               <Ionicons name="trash" size={20} color="#ef4444" />
             </TouchableOpacity>
