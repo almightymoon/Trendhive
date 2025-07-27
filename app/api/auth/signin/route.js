@@ -26,7 +26,7 @@ export async function POST(req) {
 
     // Return user data without password
     const userData = {
-      id: user._id,
+      id: user._id.toString(),
       email: user.email,
       name: user.name,
       admin: user.admin || 0,
@@ -39,6 +39,7 @@ export async function POST(req) {
       createdAt: user.createdAt
     };
 
+    console.log('Signin response:', { message: "Login successful", token, user: userData });
     return Response.json({ message: "Login successful", token, user: userData }, { status: 200 });
   } catch (error) {
     console.error("Signin error:", error);

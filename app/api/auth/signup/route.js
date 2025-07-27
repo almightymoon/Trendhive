@@ -44,7 +44,7 @@ export async function POST(req) {
 
     // Return user data without password
     const userData = {
-      id: result.insertedId,
+      id: result.insertedId.toString(),
       email: newUser.email,
       name: newUser.name,
       admin: newUser.admin,
