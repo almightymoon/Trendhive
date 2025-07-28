@@ -343,7 +343,6 @@ export default function ProductsScreen({ navigation, route }) {
     <View style={styles.container}>
       <CoolHeader
         title="Products"
-        subtitle={`${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}
         showBack={false}
       />
       <FlatList

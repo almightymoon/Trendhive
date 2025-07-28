@@ -174,6 +174,15 @@ class ApiService {
     return this.api.get('/admin/users');
   }
 
+  // Reviews
+  async submitReview(reviewData) {
+    return this.api.post('/reviews', reviewData);
+  }
+
+  async getProductReviews(productId) {
+    return this.api.get('/reviews', { params: { productId } });
+  }
+
   // Utility methods
   async uploadImage(imageData) {
     const formData = new FormData();

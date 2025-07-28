@@ -14,7 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/apiService';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 
-export default function CheckoutScreen({ navigation }) {
+export default function CheckoutScreen({ navigation, route }) {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -34,7 +34,15 @@ export default function CheckoutScreen({ navigation }) {
   const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [showShippingForm, setShowShippingForm] = useState(true);
 
-  const subtotal = getCartTotal();
+  // Get selected items from route params or use all cart items as fallback
+  const selectedItems = route.params?.selectedItems || cartItems;
+  
+  // Calculate totals based on selected items
+  const getSelectedTotal = () => {
+    return selectedItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const subtotal = getSelectedTotal();
   const shipping = subtotal > 50 ? 0 : 5.99;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
@@ -158,7 +166,7 @@ export default function CheckoutScreen({ navigation }) {
       const userId = user._id || user.id;
       const orderData = {
         userId,
-        products: cartItems, // Changed from items to products
+        products: selectedItems, // Changed from items to products
         amount: total,
         total: total,
         shippingInfo, // Add shipping info
@@ -519,7 +527,7 @@ export default function CheckoutScreen({ navigation }) {
         </View>
 
         <View style={styles.orderItems}>
-          {cartItems.map((item, index) => (
+          {selectedItems.map((item, index) => (
             <View key={index} style={styles.orderItem}>
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName} numberOfLines={2}>
@@ -594,7 +602,7 @@ export default function CheckoutScreen({ navigation }) {
           style={styles.placeOrderButton}
           onPress={handlePlaceOrder}
           loading={loading}
-          disabled={loading || cartItems.length === 0}
+          disabled={loading || selectedItems.length === 0}
         >
           <Ionicons name="checkmark-circle-outline" size={20} color="white" />
           <Text style={styles.placeOrderText}> Place Order - ${total.toFixed(2)}</Text>

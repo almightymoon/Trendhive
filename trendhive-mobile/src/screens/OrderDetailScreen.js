@@ -10,11 +10,18 @@ import {
 } from 'react-native';
 import { Card, Title, Paragraph, Chip, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import { useCart } from '../contexts/CartContext';
+import { useNotification } from '../contexts/NotificationContext';
 import CoolHeader from '../components/CoolHeader';
+import ReviewModal from '../components/ReviewModal';
 
 export default function OrderDetailScreen({ route, navigation }) {
   const { order } = route.params;
   const [loading, setLoading] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const { addToCart } = useCart();
+  const { showSuccess, showError } = useNotification();
 
   // Add debugging
   console.log('OrderDetailScreen - Received order:', order);
@@ -45,9 +52,13 @@ export default function OrderDetailScreen({ route, navigation }) {
         return '#f59e0b';
       case 'processing':
         return '#3b82f6';
+      case 'transit':
+        return '#8b5cf6';
       case 'shipped':
         return '#8b5cf6';
       case 'delivered':
+        return '#10b981';
+      case 'completed':
         return '#10b981';
       case 'cancelled':
         return '#ef4444';
@@ -62,9 +73,13 @@ export default function OrderDetailScreen({ route, navigation }) {
         return 'time-outline';
       case 'processing':
         return 'settings-outline';
+      case 'transit':
+        return 'car-outline';
       case 'shipped':
         return 'car-outline';
       case 'delivered':
+        return 'checkmark-circle-outline';
+      case 'completed':
         return 'checkmark-circle-outline';
       case 'cancelled':
         return 'close-circle-outline';
@@ -79,10 +94,14 @@ export default function OrderDetailScreen({ route, navigation }) {
         return 'Your order has been placed and is awaiting confirmation.';
       case 'processing':
         return 'Your order is being prepared for shipment.';
+      case 'transit':
+        return 'Your order is in transit and on its way to you.';
       case 'shipped':
         return 'Your order has been shipped and is on its way to you.';
       case 'delivered':
         return 'Your order has been successfully delivered.';
+      case 'completed':
+        return 'Your order has been completed.';
       case 'cancelled':
         return 'Your order has been cancelled.';
       default:
@@ -98,8 +117,20 @@ export default function OrderDetailScreen({ route, navigation }) {
     Alert.alert('Contact Support', 'Support contact feature coming soon!');
   };
 
-  const handleReorder = () => {
-    Alert.alert('Reorder', 'Reorder feature coming soon!');
+  const handleReorder = async () => {
+    // Navigate to the dedicated reorder screen
+    navigation.navigate('Reorder', { order });
+  };
+
+  const handleWriteReview = (product) => {
+    setSelectedProduct(product);
+    setShowReviewModal(true);
+  };
+
+  const handleReviewSubmitted = () => {
+    setShowReviewModal(false);
+    setSelectedProduct(null);
+    // Optionally refresh the order data or show success message
   };
 
   const renderOrderHeader = () => (
@@ -147,6 +178,7 @@ export default function OrderDetailScreen({ route, navigation }) {
     
     // Handle different possible data structures
     const items = order.items || order.products || [];
+    const isCompleted = order.status === 'completed' || order.status === 'delivered';
     
     if (items.length === 0) {
       return (
@@ -187,6 +219,15 @@ export default function OrderDetailScreen({ route, navigation }) {
                   <Text style={styles.itemQuantity}>
                     Quantity: {item.quantity || 1}
                   </Text>
+                  {isCompleted && (
+                    <TouchableOpacity
+                      style={styles.reviewButton}
+                      onPress={() => handleWriteReview(item)}
+                    >
+                      <Ionicons name="star-outline" size={16} color="#10B981" />
+                      <Text style={styles.reviewButtonText}>Write Review</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
                 <View style={styles.itemTotal}>
                   <Text style={styles.itemTotalText}>
@@ -394,6 +435,13 @@ export default function OrderDetailScreen({ route, navigation }) {
         {renderOrderSummary()}
         {renderActionButtons()}
       </ScrollView>
+      
+      <ReviewModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        product={selectedProduct}
+        orderId={order._id}
+      />
     </View>
   );
 }
@@ -493,6 +541,18 @@ const styles = StyleSheet.create({
   itemQuantity: {
     fontSize: 12,
     color: '#6b7280',
+    marginBottom: 4,
+  },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  reviewButtonText: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '600',
+    marginLeft: 4,
   },
   itemTotal: {
     alignItems: 'flex-end',

@@ -53,13 +53,28 @@ export default function AdminOrdersPage() {
 
   async function saveEdit() {
     if (!editOrder) return;
-    await fetch("/api/admin/orders", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ _id: editOrder._id, status: editStatus, paymentMethod: editPayment }),
-    });
-    setEditOrder(null);
-    fetchOrders();
+    try {
+      const response = await fetch("/api/admin/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          _id: editOrder._id, 
+          status: editStatus, 
+          paymentMethod: editPayment 
+        }),
+      });
+      
+      if (response.ok) {
+        alert('Order updated successfully!');
+        setEditOrder(null);
+        fetchOrders();
+      } else {
+        alert('Failed to update order. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      alert('Error updating order. Please try again.');
+    }
   }
 
   async function deleteOrder(order) {
@@ -205,9 +220,21 @@ export default function AdminOrdersPage() {
                 <td className="py-3 px-4 text-gray-700">{order.productName || "-"}</td>
                 <td className="py-3 px-4 text-gray-700">{order.paymentMethod || "-"}</td>
                 <td className="py-3 px-4">
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${order.status === "Dispatch" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    <span className={`w-2 h-2 rounded-full ${order.status === "Dispatch" ? "bg-green-500" : "bg-red-500"}`}></span>
-                    {order.status}
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                    order.status === "completed" || order.status === "delivered" ? "bg-green-100 text-green-700" :
+                    order.status === "transit" || order.status === "shipped" ? "bg-blue-100 text-blue-700" :
+                    order.status === "processing" ? "bg-yellow-100 text-yellow-700" :
+                    order.status === "pending" ? "bg-gray-100 text-gray-700" :
+                    "bg-red-100 text-red-700"
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${
+                      order.status === "completed" || order.status === "delivered" ? "bg-green-500" :
+                      order.status === "transit" || order.status === "shipped" ? "bg-blue-500" :
+                      order.status === "processing" ? "bg-yellow-500" :
+                      order.status === "pending" ? "bg-gray-500" :
+                      "bg-red-500"
+                    }`}></span>
+                    {order.status || "pending"}
                   </span>
                 </td>
                 <td className="py-3 px-4 relative">
@@ -232,23 +259,36 @@ export default function AdminOrdersPage() {
       {editOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Edit Order</h2>
+            <h2 className="text-xl font-bold mb-4">Edit Order #{editOrder._id?.toString().slice(-6)}</h2>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Status</label>
               <select value={editStatus} onChange={e => setEditStatus(e.target.value)} className="border rounded px-3 py-2 w-full">
-                <option value="Paid">Paid</option>
-                <option value="Dispatch">Dispatch</option>
-                <option value="Cancelled">Cancelled</option>
-                <option value="Refunded">Refunded</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="transit">In Transit</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
               </select>
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Payment Method</label>
               <input value={editPayment} onChange={e => setEditPayment(e.target.value)} className="border rounded px-3 py-2 w-full" />
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Order Details</label>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><strong>Customer:</strong> {editOrder.user?.name || 'N/A'}</p>
+                <p><strong>Email:</strong> {editOrder.user?.email || 'N/A'}</p>
+                <p><strong>Total:</strong> ${editOrder.price?.toFixed(2) || 'N/A'}</p>
+                <p><strong>Date:</strong> {editOrder.date ? new Date(editOrder.date).toLocaleDateString() : 'N/A'}</p>
+              </div>
+            </div>
             <div className="flex gap-2 justify-end">
               <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={() => setEditOrder(null)}>Cancel</button>
-              <button className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700" onClick={saveEdit}>Save</button>
+              <button className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700" onClick={saveEdit}>Save Changes</button>
             </div>
           </div>
         </div>

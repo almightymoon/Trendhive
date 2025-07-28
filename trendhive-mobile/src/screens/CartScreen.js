@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,10 +12,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import CoolHeader from '../components/CoolHeader';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CartScreen({ navigation }) {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Initialize selected items when cart changes
+  useEffect(() => {
+    const allItemIds = cartItems.map(item => item._id);
+    setSelectedItems(allItemIds);
+  }, [cartItems]);
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity <= 0) {
@@ -32,6 +40,25 @@ export default function CartScreen({ navigation }) {
     }
   };
 
+  const toggleItemSelection = (itemId) => {
+    setSelectedItems(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      } else {
+        return [...prev, itemId];
+      }
+    });
+  };
+
+  const selectAllItems = () => {
+    const allItemIds = cartItems.map(item => item._id);
+    setSelectedItems(allItemIds);
+  };
+
+  const deselectAllItems = () => {
+    setSelectedItems([]);
+  };
+
   const handleCheckout = () => {
     if (!isAuthenticated) {
       Alert.alert(
@@ -45,12 +72,14 @@ export default function CartScreen({ navigation }) {
       return;
     }
 
-    if (cartItems.length === 0) {
-      Alert.alert('Empty Cart', 'Your cart is empty.');
+    if (selectedItems.length === 0) {
+      Alert.alert('No Items Selected', 'Please select at least one item to checkout.');
       return;
     }
 
-    navigation.navigate('Checkout');
+    // Filter cart items to only include selected items
+    const selectedCartItems = cartItems.filter(item => selectedItems.includes(item._id));
+    navigation.navigate('Checkout', { selectedItems: selectedCartItems });
   };
 
   const handleClearCart = () => {
@@ -64,36 +93,129 @@ export default function CartScreen({ navigation }) {
     );
   };
 
-  const renderCartItem = (item) => (
-    <Card key={item._id} style={styles.cartItem}>
-      <View style={styles.itemContent}>
-        <Card.Cover
-          source={{ uri: item.mainImage || item.image }}
-          style={styles.itemImage}
-        />
-        <View style={styles.itemDetails}>
-          <Title style={styles.itemTitle} numberOfLines={2}>
-            {item.name}
-          </Title>
-          <Paragraph style={styles.itemPrice}>
-            ${item.price.toFixed(2)}
-          </Paragraph>
-          <View style={styles.itemActions}>
-            <View style={styles.quantityControls}>
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={() => handleQuantityChange(item._id, item.quantity - 1)}
-              >
-                <Ionicons name="remove" size={16} color="#10B981" />
-              </TouchableOpacity>
-              <Text style={styles.quantityText}>{item.quantity}</Text>
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={() => handleQuantityChange(item._id, item.quantity + 1)}
-              >
-                <Ionicons name="add" size={16} color="#10B981" />
-              </TouchableOpacity>
+  const getSelectedTotal = () => {
+    return cartItems
+      .filter(item => selectedItems.includes(item._id))
+      .reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const getSelectedCount = () => {
+    return selectedItems.length;
+  };
+
+  const renderCartHeader = () => (
+    <Card style={styles.headerCard}>
+      <LinearGradient
+        colors={['#10B981', '#059669']}
+        style={styles.headerGradient}
+      >
+        <Card.Content style={styles.headerContent}>
+          <View style={styles.cartInfo}>
+            <Ionicons name="cart" size={48} color="white" />
+            <View style={styles.cartText}>
+              <Title style={styles.cartTitle}>Shopping Cart</Title>
+              <Text style={styles.cartSubtitle}>
+                {cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in your cart
+              </Text>
             </View>
+          </View>
+        </Card.Content>
+      </LinearGradient>
+    </Card>
+  );
+
+  const renderSelectionControls = () => (
+    <Card style={styles.selectionCard}>
+      <Card.Content>
+        <View style={styles.selectionHeader}>
+          <Text style={styles.selectionTitle}>Select Items</Text>
+          <Text style={styles.selectionCount}>
+            {getSelectedCount()} of {cartItems.length} selected
+          </Text>
+        </View>
+        
+        <View style={styles.selectionButtons}>
+          <Button
+            mode="outlined"
+            onPress={selectAllItems}
+            style={styles.selectionButton}
+            textColor="#10B981"
+          >
+            Select All
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={deselectAllItems}
+            style={styles.selectionButton}
+            textColor="#EF4444"
+          >
+            Clear All
+          </Button>
+        </View>
+      </Card.Content>
+    </Card>
+  );
+
+  const renderCartItem = (item) => {
+    const isSelected = selectedItems.includes(item._id);
+    const totalPrice = item.price * item.quantity;
+
+    return (
+      <Card key={item._id} style={[styles.cartItem, isSelected && styles.selectedItemCard]}>
+        <Card.Content>
+          <View style={styles.itemRow}>
+            <TouchableOpacity
+              style={styles.checkbox}
+              onPress={() => toggleItemSelection(item._id)}
+            >
+              <Ionicons
+                name={isSelected ? "checkbox" : "square-outline"}
+                size={24}
+                color={isSelected ? "#10B981" : "#D1D5DB"}
+              />
+            </TouchableOpacity>
+            
+            <Card.Cover
+              source={{ uri: item.mainImage || item.image }}
+              style={styles.itemImage}
+            />
+            
+            <View style={styles.itemDetails}>
+              <Title style={styles.itemTitle} numberOfLines={2}>
+                {item.name}
+              </Title>
+              <Text style={styles.itemPrice}>
+                ${item.price.toFixed(2)} each
+              </Text>
+              <Text style={styles.itemTotal}>
+                Total: ${totalPrice.toFixed(2)}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.itemActions}>
+            <View style={styles.quantitySection}>
+              <Text style={styles.quantityLabel}>Quantity:</Text>
+              <View style={styles.quantityControls}>
+                <TouchableOpacity
+                  style={[styles.quantityButton, item.quantity <= 1 && styles.quantityButtonDisabled]}
+                  onPress={() => handleQuantityChange(item._id, item.quantity - 1)}
+                  disabled={item.quantity <= 1}
+                >
+                  <Ionicons name="remove" size={20} color={item.quantity <= 1 ? "#9CA3AF" : "#10B981"} />
+                </TouchableOpacity>
+                
+                <Text style={styles.quantityText}>{item.quantity}</Text>
+                
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => handleQuantityChange(item._id, item.quantity + 1)}
+                >
+                  <Ionicons name="add" size={20} color="#10B981" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => removeFromCart(item._id)}
@@ -101,13 +223,10 @@ export default function CartScreen({ navigation }) {
               <Ionicons name="trash-outline" size={20} color="#ef4444" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.itemTotal}>
-            Total: ${(item.price * item.quantity).toFixed(2)}
-          </Text>
-        </View>
-      </View>
-    </Card>
-  );
+        </Card.Content>
+      </Card>
+    );
+  };
 
   const renderEmptyCart = () => (
     <View style={styles.emptyCart}>
@@ -127,51 +246,47 @@ export default function CartScreen({ navigation }) {
   );
 
   const renderCartSummary = () => (
-    <View style={styles.cartSummary}>
-      <View style={styles.summaryHeader}>
-        <Text style={styles.summaryTitle}>Order Summary</Text>
-        <TouchableOpacity onPress={handleClearCart}>
-          <Text style={styles.clearCartText}>Clear Cart</Text>
-        </TouchableOpacity>
-      </View>
+    <Card style={styles.summaryCard}>
+      <Card.Content>
+        <View style={styles.summaryHeader}>
+          <Text style={styles.summaryTitle}>Order Summary</Text>
+          <TouchableOpacity onPress={handleClearCart}>
+            <Text style={styles.clearCartText}>Clear Cart</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.summaryItems}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Subtotal</Text>
-          <Text style={styles.summaryValue}>
-            ${getCartTotal().toFixed(2)}
-          </Text>
+        <View style={styles.summaryItems}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Selected Items:</Text>
+            <Text style={styles.summaryValue}>{getSelectedCount()}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal</Text>
+            <Text style={styles.summaryValue}>
+              ${getSelectedTotal().toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Shipping</Text>
+            <Text style={styles.summaryValue}>
+              {getSelectedTotal() > 50 ? 'Free' : '$5.99'}
+            </Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Tax</Text>
+            <Text style={styles.summaryValue}>
+              ${(getSelectedTotal() * 0.08).toFixed(2)}
+            </Text>
+          </View>
+          <View style={[styles.summaryRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>
+              ${(getSelectedTotal() + (getSelectedTotal() > 50 ? 0 : 5.99) + (getSelectedTotal() * 0.08)).toFixed(2)}
+            </Text>
+          </View>
         </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Shipping</Text>
-          <Text style={styles.summaryValue}>
-            {getCartTotal() > 50 ? 'Free' : '$5.99'}
-          </Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Tax</Text>
-          <Text style={styles.summaryValue}>
-            ${(getCartTotal() * 0.08).toFixed(2)}
-          </Text>
-        </View>
-        <View style={[styles.summaryRow, styles.totalRow]}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>
-            ${(getCartTotal() + (getCartTotal() > 50 ? 0 : 5.99) + (getCartTotal() * 0.08)).toFixed(2)}
-          </Text>
-        </View>
-      </View>
-
-      <Button
-        mode="contained"
-        style={styles.checkoutButton}
-        onPress={handleCheckout}
-        disabled={cartItems.length === 0}
-      >
-        <Ionicons name="card-outline" size={20} color="white" />
-        <Text style={styles.checkoutButtonText}> Proceed to Checkout</Text>
-      </Button>
-    </View>
+      </Card.Content>
+    </Card>
   );
 
   return (
@@ -181,18 +296,43 @@ export default function CartScreen({ navigation }) {
         subtitle={`${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`}
         showBack={false}
       />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {cartItems.length === 0 ? (
           renderEmptyCart()
         ) : (
           <>
-            <View style={styles.cartItems}>
-              {cartItems.map(renderCartItem)}
+            {renderCartHeader()}
+            <View style={styles.content}>
+              {renderSelectionControls()}
+              
+              <View style={styles.cartItems}>
+                <Text style={styles.sectionTitle}>Cart Items</Text>
+                {cartItems.map(renderCartItem)}
+              </View>
+              
+              {renderCartSummary()}
             </View>
-            {renderCartSummary()}
           </>
         )}
       </ScrollView>
+      
+      {cartItems.length > 0 && (
+        <View style={styles.bottomBar}>
+          <Button
+            mode="contained"
+            onPress={handleCheckout}
+            style={styles.checkoutButton}
+            disabled={getSelectedCount() === 0}
+            buttonColor="#10B981"
+            textColor="white"
+          >
+            <Ionicons name="card-outline" size={20} color="white" />
+            <Text style={styles.checkoutButtonText}>
+              Checkout {getSelectedCount()} Item{getSelectedCount() !== 1 ? 's' : ''}
+            </Text>
+          </Button>
+        </View>
+      )}
     </View>
   );
 }
@@ -204,6 +344,179 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  content: {
+    padding: 20,
+  },
+  headerCard: {
+    margin: 20,
+    marginBottom: 10,
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  headerGradient: {
+    borderRadius: 16,
+  },
+  headerContent: {
+    padding: 24,
+  },
+  cartInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cartText: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  cartTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  cartSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  selectionCard: {
+    marginBottom: 20,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  selectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  selectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  selectionCount: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  selectionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  selectionButton: {
+    flex: 1,
+    borderColor: '#d1d5db',
+  },
+  cartItems: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 16,
+  },
+  cartItem: {
+    marginBottom: 12,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  selectedItemCard: {
+    borderColor: '#10B981',
+    borderWidth: 2,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  checkbox: {
+    marginRight: 12,
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 16,
+  },
+  itemDetails: {
+    flex: 1,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  itemPrice: {
+    fontSize: 14,
+    color: '#10B981',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  itemTotal: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  itemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  quantitySection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  quantityLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginRight: 12,
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  quantityButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  quantityButtonDisabled: {
+    opacity: 0.5,
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginHorizontal: 16,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  removeButton: {
+    padding: 8,
   },
   emptyCart: {
     flex: 1,
@@ -231,92 +544,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 30,
   },
-  cartItems: {
-    padding: 20,
-  },
-  cartItem: {
-    marginBottom: 15,
+  summaryCard: {
     backgroundColor: 'white',
     borderRadius: 12,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 3,
-  },
-  itemContent: {
-    flexDirection: 'row',
-    padding: 15,
-  },
-  itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    marginRight: 15,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 5,
-  },
-  itemPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#10B981',
-    marginBottom: 10,
-  },
-  itemActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  quantityControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 20,
-    paddingHorizontal: 8,
-  },
-  quantityButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 2,
-  },
-  quantityText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginHorizontal: 10,
-    minWidth: 20,
-    textAlign: 'center',
-  },
-  removeButton: {
-    padding: 8,
-  },
-  itemTotal: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  cartSummary: {
-    backgroundColor: 'white',
-    margin: 20,
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -367,17 +602,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#10B981',
   },
+  bottomBar: {
+    backgroundColor: 'white',
+    padding: 20,
+    paddingBottom: 30,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
   checkoutButton: {
-    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   checkoutButtonText: {
     color: 'white',
     fontWeight: '600',
     fontSize: 16,
+    marginLeft: 8,
   },
 }); 

@@ -26,6 +26,7 @@ import AboutScreen from './src/screens/AboutScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import WishlistScreen from './src/screens/WishlistScreen';
 import OrderDetailScreen from './src/screens/OrderDetailScreen';
+import ReorderScreen from './src/screens/ReorderScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 
@@ -171,6 +172,11 @@ function MainAppNavigator() {
       <Stack.Screen 
         name="OrderDetail" 
         component={OrderDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Reorder" 
+        component={ReorderScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen 

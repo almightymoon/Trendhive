@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import CoolHeader from '../components/CoolHeader';
+import ReviewsSection from '../components/ReviewsSection';
 
 const { width, height } = Dimensions.get('window');
 
@@ -237,6 +238,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           {renderQuantitySelector()}
           {renderActionButtons()}
         </View>
+        <ReviewsSection productId={productId} />
       </ScrollView>
     </View>
   );
