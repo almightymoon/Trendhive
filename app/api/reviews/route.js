@@ -28,7 +28,31 @@ export async function GET(req) {
         .sort({ createdAt: -1 })
         .toArray();
 
-      return Response.json(reviews);
+      // Enrich reviews with product information
+      const enrichedReviews = await Promise.all(reviews.map(async (review) => {
+        try {
+          // If review doesn't have product name or image, fetch from products collection
+          if (!review.productName || !review.productImage) {
+            const product = await db.collection('products').findOne({ 
+              _id: new ObjectId(review.productId) 
+            });
+            
+            if (product) {
+              return {
+                ...review,
+                productName: review.productName || product.name,
+                productImage: review.productImage || product.mainImage || product.image || product.images?.[0]
+              };
+            }
+          }
+          return review;
+        } catch (error) {
+          console.error('Error enriching review with product data:', error);
+          return review;
+        }
+      }));
+
+      return Response.json(enrichedReviews);
     } else {
       return Response.json({ error: 'Product ID or User ID is required' }, { status: 400 });
     }

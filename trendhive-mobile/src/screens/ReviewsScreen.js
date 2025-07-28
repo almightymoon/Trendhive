@@ -294,8 +294,8 @@ export default function ReviewsScreen({ navigation }) {
       });
       return {
         _id: review.productId,
-        name: review.productName,
-        mainImage: review.productImage || review.product?.mainImage || review.product?.image || review.product?.images?.[0],
+        name: review.productName || 'Unknown Product',
+        mainImage: review.productImage,
         review: review,
         reviewedAt: review.createdAt
       };
@@ -311,13 +311,19 @@ export default function ReviewsScreen({ navigation }) {
       <Card key={uniqueKey} style={[styles.productCard, { backgroundColor: colors.card }]}>
         <Card.Content>
           <View style={styles.productRow}>
-            <Image
-              source={{ 
-                uri: product.mainImage || product.image || product.images?.[0] || 'https://via.placeholder.com/100x100?text=No+Image'
-              }}
-              style={styles.productImage}
-              resizeMode="cover"
-            />
+            {(product.mainImage || product.image || product.images?.[0]) ? (
+              <Image
+                source={{ 
+                  uri: product.mainImage || product.image || product.images?.[0]
+                }}
+                style={styles.productImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.productImage, { backgroundColor: colors.surfaceVariant, justifyContent: 'center', alignItems: 'center' }]}>
+                <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
+              </View>
+            )}
             <View style={styles.productInfo}>
               <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
                 {product.name || product.title}
