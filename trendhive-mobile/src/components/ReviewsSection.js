@@ -24,6 +24,12 @@ export default function ReviewsSection({ productId, productName }) {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
 
+  // Debug user context
+  console.log('ReviewsSection - User context:', {
+    user: user ? { id: user._id, email: user.email } : null,
+    isAuthenticated: !!user
+  });
+
 
   useEffect(() => {
     if (productId) {
@@ -34,7 +40,10 @@ export default function ReviewsSection({ productId, productName }) {
   const loadReviews = async () => {
     try {
       setLoading(true);
+      console.log('ReviewsSection - Loading reviews for productId:', productId);
+      console.log('ReviewsSection - Current user:', user?._id);
       const reviewsData = await apiService.getProductReviews(productId);
+      console.log('ReviewsSection - Loaded reviews:', reviewsData);
       
       if (Array.isArray(reviewsData)) {
         setReviews(reviewsData);
@@ -69,11 +78,24 @@ export default function ReviewsSection({ productId, productName }) {
   };
 
   const handleEditReview = (review) => {
+    console.log('ReviewsSection - Edit review clicked:', review);
+    console.log('ReviewsSection - Setting selectedReview:', {
+      reviewId: review._id,
+      productId: review.productId,
+      rating: review.rating,
+      comment: review.comment
+    });
     setSelectedReview(review);
     setShowReviewModal(true);
   };
 
   const handleDeleteReview = async (review) => {
+    console.log('ReviewsSection - Delete review clicked:', review);
+    console.log('ReviewsSection - Review to delete:', {
+      reviewId: review._id,
+      productId: review.productId,
+      userId: review.userId
+    });
     Alert.alert(
       'Delete Review',
       'Are you sure you want to delete this review? This action cannot be undone.',
@@ -84,15 +106,23 @@ export default function ReviewsSection({ productId, productName }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('ReviewsSection - Calling deleteReview API with reviewId:', review._id);
               const response = await apiService.deleteReview(review._id);
+              console.log('ReviewsSection - Delete API response:', response);
               if (response.success) {
                 Alert.alert('Success', 'Review deleted successfully');
                 loadReviews(); // Refresh reviews
               } else {
+                console.error('ReviewsSection - Delete API returned error:', response.error);
                 Alert.alert('Error', response.error || 'Failed to delete review');
               }
             } catch (error) {
-              console.error('Error deleting review:', error);
+              console.error('ReviewsSection - Error deleting review:', error);
+              console.error('ReviewsSection - Error details:', {
+                message: error.message,
+                status: error.status,
+                response: error.response
+              });
               Alert.alert('Error', 'Failed to delete review. Please try again.');
             }
           }
@@ -110,7 +140,20 @@ export default function ReviewsSection({ productId, productName }) {
 
 
   const renderReviewItem = (review) => {
-    const isUserReview = user && review.userId === user._id;
+    console.log('ReviewSection - Rendering review:', {
+      reviewId: review._id,
+      reviewUserId: review.userId,
+      currentUserId: user?._id,
+      userName: review.userName,
+      isUserReview: user && review.userId === user._id
+    });
+    // More robust user ID comparison
+    const isUserReview = user && (
+      review.userId === user._id || 
+      review.userId === user.id ||
+      String(review.userId) === String(user._id) ||
+      String(review.userId) === String(user.id)
+    );
     
     return (
       <View key={review._id} style={[styles.reviewItem, { borderBottomColor: colors.border }]}>
@@ -122,6 +165,7 @@ export default function ReviewsSection({ productId, productName }) {
             <View>
               <Text style={[styles.reviewerName, { color: colors.text }]}>
                 {review.userName || 'Anonymous'}
+                {isUserReview && ' (You)'}
               </Text>
               <View style={styles.starsContainer}>
                 {renderStars(review.rating)}
@@ -132,6 +176,22 @@ export default function ReviewsSection({ productId, productName }) {
             <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>
               {new Date(review.createdAt).toLocaleDateString()}
             </Text>
+            {/* Temporarily show buttons for all reviews to test */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, { borderColor: colors.border }]}
+                onPress={() => handleEditReview(review)}
+              >
+                <Ionicons name="create-outline" size={16} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, { borderColor: colors.error }]}
+                onPress={() => handleDeleteReview(review)}
+              >
+                <Ionicons name="trash-outline" size={16} color={colors.error} />
+              </TouchableOpacity>
+            </View>
+            {/* Original conditional code (commented out for testing):
             {isUserReview && (
               <View style={styles.actionButtons}>
                 <TouchableOpacity
@@ -148,6 +208,7 @@ export default function ReviewsSection({ productId, productName }) {
                 </TouchableOpacity>
               </View>
             )}
+            */}
           </View>
         </View>
         
@@ -214,6 +275,17 @@ export default function ReviewsSection({ productId, productName }) {
         onReviewSubmitted={handleReviewSubmitted}
         existingReview={selectedReview}
       />
+      {/* Debug: Log ReviewModal props */}
+      {showReviewModal && (
+        <View style={{ display: 'none' }}>
+          {console.log('ReviewsSection - ReviewModal props:', {
+            visible: showReviewModal,
+            productId,
+            productName,
+            existingReview: selectedReview
+          })}
+        </View>
+      )}
     </>
   );
 }

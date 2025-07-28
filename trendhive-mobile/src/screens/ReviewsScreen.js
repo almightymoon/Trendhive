@@ -79,6 +79,7 @@ export default function ReviewsScreen({ navigation }) {
   const loadPendingReviews = async () => {
     try {
       console.log('Loading pending reviews for user:', user._id);
+      console.log('API Service auth token:', apiService.authToken ? 'Present' : 'Missing');
       const response = await apiService.getPendingReviews(user._id);
       console.log('Pending reviews response:', response);
       if (Array.isArray(response)) {
@@ -86,6 +87,13 @@ export default function ReviewsScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Error loading pending reviews:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
+      // Set empty array as fallback to prevent errors
+      setPendingReviews([]);
     }
   };
 
@@ -96,13 +104,14 @@ export default function ReviewsScreen({ navigation }) {
   };
 
   const handleReviewSubmitted = async () => {
+    const currentProduct = selectedProduct; // Store reference before clearing
     setShowReviewModal(false);
     setSelectedProduct(null);
     
     // Remove the product from pending reviews if it was there
-    if (selectedProduct && selectedProduct.isPendingReview) {
+    if (currentProduct && currentProduct.isPendingReview) {
       try {
-        await apiService.removePendingReview(user._id, selectedProduct._id);
+        await apiService.removePendingReview(user._id, currentProduct._id);
       } catch (error) {
         console.error('Error removing pending review:', error);
       }
@@ -209,13 +218,16 @@ export default function ReviewsScreen({ navigation }) {
   };
 
   const getReviewedProducts = () => {
-    return userReviews.map(review => ({
+    console.log('Getting reviewed products, userReviews count:', userReviews.length);
+    const reviewedProducts = userReviews.map(review => ({
       _id: review.productId,
       name: review.productName,
       mainImage: review.productImage,
       review: review,
       reviewedAt: review.createdAt
     }));
+    console.log('Reviewed products:', reviewedProducts.map(p => ({ id: p._id, name: p.name })));
+    return reviewedProducts;
   };
 
   const renderProductCard = (product, isReviewed = false, uniqueKey) => {
