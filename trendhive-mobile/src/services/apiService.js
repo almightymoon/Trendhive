@@ -221,7 +221,11 @@ class ApiService {
     console.log('API Service - Current auth token:', this.authToken ? 'Present' : 'Missing');
     console.log('API Service - Base URL:', API_CONFIG.BASE_URL);
     try {
-      const response = await this.api.delete(`/reviews/${reviewId}`);
+      // Try using POST with delete action as fallback
+      const response = await this.api.post('/reviews', { 
+        action: 'delete', 
+        reviewId: reviewId 
+      });
       console.log('API Service - deleteReview response:', response);
       return response;
     } catch (error) {

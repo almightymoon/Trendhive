@@ -79,6 +79,7 @@ export default function ReviewsSection({ productId, productName }) {
 
   const handleEditReview = (review) => {
     console.log('ReviewsSection - Edit review clicked:', review);
+    console.log('ReviewsSection - Full review object:', JSON.stringify(review, null, 2));
     console.log('ReviewsSection - Setting selectedReview:', {
       reviewId: review._id,
       productId: review.productId,
@@ -180,13 +181,21 @@ export default function ReviewsSection({ productId, productName }) {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={[styles.actionButton, { borderColor: colors.border }]}
-                onPress={() => handleEditReview(review)}
+                onPress={() => {
+                  Alert.alert('Test', `Edit button clicked for review: ${review._id}`);
+                  console.log('ReviewsSection - Test edit button clicked for review:', review);
+                  handleEditReview(review);
+                }}
               >
                 <Ionicons name="create-outline" size={16} color={colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, { borderColor: colors.error }]}
-                onPress={() => handleDeleteReview(review)}
+                onPress={() => {
+                  Alert.alert('Test', `Delete button clicked for review: ${review._id}`);
+                  console.log('ReviewsSection - Test delete button clicked for review:', review);
+                  handleDeleteReview(review);
+                }}
               >
                 <Ionicons name="trash-outline" size={16} color={colors.error} />
               </TouchableOpacity>

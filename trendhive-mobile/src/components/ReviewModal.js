@@ -17,6 +17,19 @@ import { apiService } from '../services/apiService';
 export default function ReviewModal({ visible, onClose, productId, productName, onReviewSubmitted, existingReview }) {
   const { colors } = useTheme();
   const { user } = useAuth();
+  
+  console.log('ReviewModal - Props received:', {
+    visible,
+    productId,
+    productName,
+    existingReview: existingReview ? {
+      _id: existingReview._id,
+      rating: existingReview.rating,
+      comment: existingReview.comment,
+      productId: existingReview.productId
+    } : null
+  });
+  
   const [rating, setRating] = useState(existingReview?.rating || 0);
   const [comment, setComment] = useState(existingReview?.comment || '');
   const [loading, setLoading] = useState(false);

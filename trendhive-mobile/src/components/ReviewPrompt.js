@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,53 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import ReviewModal from './ReviewModal';
+import apiService from '../services/apiService';
 
 export default function ReviewPrompt({ visible, onClose, products, orderId }) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [userReviews, setUserReviews] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Load user reviews and filter products
+  useEffect(() => {
+    const loadUserReviewsAndFilterProducts = async () => {
+      if (!visible || !user || !products) return;
+      
+      setLoading(true);
+      try {
+        // Load user's existing reviews
+        const reviews = await apiService.getUserReviews(user._id);
+        setUserReviews(reviews || []);
+        
+        // Filter out products that user has already reviewed
+        const productsNeedingReviews = products.filter(product => {
+          const productId = product._id || product.id;
+          const hasReviewed = reviews.some(review => 
+            String(review.productId) === String(productId)
+          );
+          return !hasReviewed;
+        });
+        
+        console.log('ReviewPrompt - Original products:', products.length);
+        console.log('ReviewPrompt - User reviews:', reviews.length);
+        console.log('ReviewPrompt - Products needing reviews:', productsNeedingReviews.length);
+        
+        setFilteredProducts(productsNeedingReviews);
+      } catch (error) {
+        console.error('Error loading user reviews:', error);
+        // If error, show all products
+        setFilteredProducts(products);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadUserReviewsAndFilterProducts();
+  }, [visible, user, products]);
 
   const handleReviewProduct = (product) => {
     if (!user) {
@@ -35,18 +76,28 @@ export default function ReviewPrompt({ visible, onClose, products, orderId }) {
   };
 
   const handleSkip = async () => {
-    // Save products to pending reviews when user clicks "Maybe Later"
-    if (user && products && products.length > 0) {
+    // Save only products that haven't been reviewed to pending reviews
+    if (user && filteredProducts && filteredProducts.length > 0) {
       try {
-        await apiService.savePendingReviews(user._id, products, orderId);
+        console.log('ReviewPrompt - Saving pending reviews for products:', filteredProducts.length);
+        await apiService.savePendingReviews(user._id, filteredProducts, orderId);
       } catch (error) {
         console.error('Error saving pending reviews:', error);
       }
+    } else {
+      console.log('ReviewPrompt - No products to save to pending reviews');
     }
     onClose();
   };
 
   if (!visible || !products || products.length === 0) {
+    return null;
+  }
+
+  // If all products have been reviewed, don't show the prompt
+  if (filteredProducts.length === 0 && !loading) {
+    console.log('ReviewPrompt - All products already reviewed, closing prompt');
+    onClose();
     return null;
   }
 
@@ -66,23 +117,29 @@ export default function ReviewPrompt({ visible, onClose, products, orderId }) {
             </View>
 
             <View style={styles.productsList}>
-              {products.map((product, index) => (
-                <TouchableOpacity
-                  key={product._id || product.id || index}
-                  style={[styles.productItem, { borderColor: colors.border }]}
-                  onPress={() => handleReviewProduct(product)}
-                >
-                  <View style={styles.productInfo}>
-                    <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
-                      {product.name || product.title}
-                    </Text>
-                    <Text style={[styles.productPrice, { color: colors.primary }]}>
-                      ${(product.price || 0).toFixed(2)}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-                </TouchableOpacity>
-              ))}
+              {loading ? (
+                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                  Loading products...
+                </Text>
+              ) : (
+                filteredProducts.map((product, index) => (
+                  <TouchableOpacity
+                    key={product._id || product.id || index}
+                    style={[styles.productItem, { borderColor: colors.border }]}
+                    onPress={() => handleReviewProduct(product)}
+                  >
+                    <View style={styles.productInfo}>
+                      <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
+                        {product.name || product.title}
+                      </Text>
+                      <Text style={[styles.productPrice, { color: colors.primary }]}>
+                        ${(product.price || 0).toFixed(2)}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                ))
+              )}
             </View>
 
             <View style={styles.actions}>
@@ -96,10 +153,11 @@ export default function ReviewPrompt({ visible, onClose, products, orderId }) {
               </Button>
               <Button
                 mode="contained"
-                onPress={() => handleReviewProduct(products[0])}
+                onPress={() => handleReviewProduct(filteredProducts[0])}
                 style={styles.reviewButton}
                 buttonColor={colors.primary}
                 icon="star-outline"
+                disabled={filteredProducts.length === 0}
               >
                 Write Review
               </Button>
@@ -182,6 +240,11 @@ const styles = StyleSheet.create({
   productPrice: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  loadingText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 20,
   },
   actions: {
     flexDirection: 'row',

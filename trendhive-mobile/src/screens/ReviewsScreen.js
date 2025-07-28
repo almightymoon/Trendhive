@@ -105,19 +105,24 @@ export default function ReviewsScreen({ navigation }) {
 
   const handleReviewSubmitted = async () => {
     const currentProduct = selectedProduct; // Store reference before clearing
+    console.log('ReviewsScreen - Review submitted for product:', currentProduct);
+    
     setShowReviewModal(false);
     setSelectedProduct(null);
     
     // Remove the product from pending reviews if it was there
     if (currentProduct && currentProduct.isPendingReview) {
       try {
+        console.log('ReviewsScreen - Removing pending review for product:', currentProduct._id);
         await apiService.removePendingReview(user._id, currentProduct._id);
       } catch (error) {
         console.error('Error removing pending review:', error);
       }
     }
     
-    loadData(); // Refresh data
+    // Force refresh all data to ensure reviews move to completed section
+    console.log('ReviewsScreen - Refreshing data after review submission');
+    await loadData();
   };
 
   const handleEditReview = (review) => {
@@ -192,15 +197,25 @@ export default function ReviewsScreen({ navigation }) {
       console.log('Order items count:', items.length);
       items.forEach(item => {
         const productId = item._id || item.id || item.productId;
-        const existingReview = userReviews.find(review => 
-          review.productId === productId || review.productId === item._id
-        );
-        const existingPendingReview = pendingReviews.find(pending => 
-          pending.productId === productId || pending.productId === item._id
-        );
+        
+        // Check if user has already reviewed this product (more robust comparison)
+        const existingReview = userReviews.find(review => {
+          const reviewProductId = review.productId || review.productId;
+          return String(reviewProductId) === String(productId) || 
+                 String(reviewProductId) === String(item._id) ||
+                 String(reviewProductId) === String(item.id);
+        });
+        
+        // Check if product is already in pending reviews
+        const existingPendingReview = pendingReviews.find(pending => {
+          const pendingProductId = pending.productId || pending.productId;
+          return String(pendingProductId) === String(productId) || 
+                 String(pendingProductId) === String(item._id) ||
+                 String(pendingProductId) === String(item.id);
+        });
         
         if (!existingReview && !existingPendingReview) {
-          console.log('Adding product for review:', item.name || item.title);
+          console.log('Adding product for review:', item.name || item.title, 'Product ID:', productId);
           productsNeedingReviews.push({
             ...item,
             orderId: order._id,
@@ -208,7 +223,13 @@ export default function ReviewsScreen({ navigation }) {
             orderNumber: order.orderNumber
           });
         } else {
-          console.log('Product already reviewed or pending:', item.name || item.title);
+          console.log('Product already reviewed or pending:', item.name || item.title, 'Product ID:', productId);
+          if (existingReview) {
+            console.log('  - Already reviewed on:', new Date(existingReview.createdAt).toLocaleDateString());
+          }
+          if (existingPendingReview) {
+            console.log('  - Already in pending reviews');
+          }
         }
       });
     });
@@ -219,13 +240,21 @@ export default function ReviewsScreen({ navigation }) {
 
   const getReviewedProducts = () => {
     console.log('Getting reviewed products, userReviews count:', userReviews.length);
-    const reviewedProducts = userReviews.map(review => ({
-      _id: review.productId,
-      name: review.productName,
-      mainImage: review.productImage,
-      review: review,
-      reviewedAt: review.createdAt
-    }));
+    const reviewedProducts = userReviews.map(review => {
+      console.log('Processing review:', {
+        reviewId: review._id,
+        productId: review.productId,
+        productName: review.productName,
+        rating: review.rating
+      });
+      return {
+        _id: review.productId,
+        name: review.productName,
+        mainImage: review.productImage,
+        review: review,
+        reviewedAt: review.createdAt
+      };
+    });
     console.log('Reviewed products:', reviewedProducts.map(p => ({ id: p._id, name: p.name })));
     return reviewedProducts;
   };
