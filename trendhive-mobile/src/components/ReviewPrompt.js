@@ -35,6 +35,8 @@ export default function ReviewPrompt({ visible, onClose, products, orderId }) {
   };
 
   const handleSkip = () => {
+    // Just close the prompt, don't mark reviews as completed
+    // Products will still appear in pending reviews
     onClose();
   };
 

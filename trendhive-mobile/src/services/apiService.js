@@ -210,6 +210,10 @@ class ApiService {
     return this.api.get('/reviews/user', { params: { userId } });
   }
 
+  async deleteReview(reviewId) {
+    return this.api.delete(`/reviews/${reviewId}`);
+  }
+
   // Utility methods
   async uploadImage(imageData) {
     const formData = new FormData();

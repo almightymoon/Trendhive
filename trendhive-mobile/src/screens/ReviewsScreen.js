@@ -93,6 +93,34 @@ export default function ReviewsScreen({ navigation }) {
     setShowReviewModal(true);
   };
 
+  const handleDeleteReview = async (review) => {
+    Alert.alert(
+      'Delete Review',
+      'Are you sure you want to delete this review? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await apiService.deleteReview(review._id);
+              if (response.success) {
+                Alert.alert('Success', 'Review deleted successfully');
+                loadData(); // Refresh the data
+              } else {
+                Alert.alert('Error', response.error || 'Failed to delete review');
+              }
+            } catch (error) {
+              console.error('Error deleting review:', error);
+              Alert.alert('Error', 'Failed to delete review. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleWriteReview = (product) => {
     setSelectedProduct(product);
     setShowReviewModal(true);
@@ -191,15 +219,26 @@ export default function ReviewsScreen({ navigation }) {
           
           <View style={styles.actionRow}>
             {isReviewed ? (
-              <Button
-                mode="outlined"
-                onPress={() => handleEditReview(review)}
-                style={[styles.editButton, { borderColor: colors.border }]}
-                textColor={colors.text}
-                icon="edit"
-              >
-                Edit Review
-              </Button>
+              <View style={styles.reviewActions}>
+                <Button
+                  mode="outlined"
+                  onPress={() => handleEditReview(review)}
+                  style={[styles.editButton, { borderColor: colors.border }]}
+                  textColor={colors.text}
+                  icon="edit"
+                >
+                  Edit
+                </Button>
+                <Button
+                  mode="outlined"
+                  onPress={() => handleDeleteReview(review)}
+                  style={[styles.deleteButton, { borderColor: colors.error }]}
+                  textColor={colors.error}
+                  icon="trash-outline"
+                >
+                  Delete
+                </Button>
+              </View>
             ) : (
               <Button
                 mode="contained"
@@ -447,11 +486,20 @@ const styles = StyleSheet.create({
   actionRow: {
     alignItems: 'flex-end',
   },
+  reviewActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   reviewButton: {
     borderRadius: 8,
   },
   editButton: {
     borderRadius: 8,
+    flex: 1,
+  },
+  deleteButton: {
+    borderRadius: 8,
+    flex: 1,
   },
   emptyState: {
     flex: 1,
