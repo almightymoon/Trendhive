@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/api';
+import cacheService from './cacheService';
 
 class ApiService {
   constructor() {
@@ -68,17 +69,64 @@ class ApiService {
   // Products - using public route for better accessibility
   async getProducts(params = {}) {
     console.log('API Service: Calling /products endpoint with params:', params);
-    return this.api.get('/products', { params });
+    
+    // Create cache key based on params
+    const cacheKey = `products_${JSON.stringify(params)}`;
+    
+    // Try to get from cache first
+    const cachedData = await cacheService.get(cacheKey);
+    if (cachedData) {
+      console.log('API Service: Returning cached products data');
+      return cachedData;
+    }
+    
+    // If not in cache, fetch from API
+    const data = await this.api.get('/products', { params });
+    
+    // Cache the result for 15 minutes
+    await cacheService.set(cacheKey, data, 15 * 60 * 1000);
+    
+    return data;
   }
 
   async getProduct(id) {
     console.log('API Service: Calling /products endpoint for product ID:', id);
-    return this.api.get(`/products?id=${id}`);
+    
+    // Try to get from cache first
+    const cacheKey = `product_${id}`;
+    const cachedData = await cacheService.get(cacheKey);
+    if (cachedData) {
+      console.log('API Service: Returning cached product data');
+      return cachedData;
+    }
+    
+    // If not in cache, fetch from API
+    const data = await this.api.get(`/products?id=${id}`);
+    
+    // Cache the result for 30 minutes
+    await cacheService.set(cacheKey, data, 30 * 60 * 1000);
+    
+    return data;
   }
 
   async getFeaturedProducts() {
     console.log('API Service: Calling /products endpoint for featured products');
-    return this.api.get('/products', { params: { featured: true } });
+    
+    // Try to get from cache first
+    const cacheKey = 'featured_products';
+    const cachedData = await cacheService.get(cacheKey);
+    if (cachedData) {
+      console.log('API Service: Returning cached featured products data');
+      return cachedData;
+    }
+    
+    // If not in cache, fetch from API
+    const data = await this.api.get('/products', { params: { featured: true } });
+    
+    // Cache the result for 20 minutes
+    await cacheService.set(cacheKey, data, 20 * 60 * 1000);
+    
+    return data;
   }
 
   // Cart
@@ -308,6 +356,31 @@ class ApiService {
         'Content-Type': 'multipart/form-data',
       },
     });
+  }
+
+  // Cache management methods
+  async clearProductCache() {
+    console.log('API Service: Clearing product cache');
+    const keys = await cacheService.getCacheSize();
+    console.log(`API Service: Current cache size: ${keys} items`);
+    
+    // Clear specific product-related cache
+    await cacheService.remove('products');
+    await cacheService.remove('featured_products');
+    
+    // Clear individual product caches (this is a simplified approach)
+    // In a production app, you might want to track specific product IDs
+    return true;
+  }
+
+  async clearAllCache() {
+    console.log('API Service: Clearing all cache');
+    return await cacheService.clear();
+  }
+
+  async getCacheInfo() {
+    const size = await cacheService.getCacheSize();
+    return { size };
   }
 
   // Commented out Google Sign-In for now

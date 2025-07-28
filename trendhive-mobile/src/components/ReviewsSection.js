@@ -173,7 +173,6 @@ export default function ReviewsSection({ productId, productName }) {
             <View>
               <Text style={[styles.reviewerName, { color: colors.text }]}>
                 {review.userName || 'Anonymous'}
-                {isUserReview && ' (You)'}
               </Text>
               <View style={styles.starsContainer}>
                 {renderStars(review.rating)}
@@ -208,27 +207,7 @@ export default function ReviewsSection({ productId, productName }) {
               </View>
             )}
             
-            {/* Debug: Show buttons for all reviews temporarily to test */}
-            {!isUserReview && (
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={[styles.actionButton, { borderColor: colors.border }]}
-                  onPress={() => {
-                    Alert.alert('Debug', `This is not your review. User ID: ${review.userId}, Your ID: ${user?._id}`);
-                  }}
-                >
-                  <Ionicons name="create-outline" size={16} color={colors.textTertiary} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionButton, { borderColor: colors.error }]}
-                  onPress={() => {
-                    Alert.alert('Debug', `This is not your review. User ID: ${review.userId}, Your ID: ${user?._id}`);
-                  }}
-                >
-                  <Ionicons name="trash-outline" size={16} color={colors.textTertiary} />
-                </TouchableOpacity>
-              </View>
-            )}
+
           </View>
         </View>
         

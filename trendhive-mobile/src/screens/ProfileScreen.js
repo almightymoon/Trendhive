@@ -149,6 +149,11 @@ export default function ProfileScreen({ navigation }) {
       icon: 'information-circle-outline',
       onPress: () => navigation.navigate('About')
     },
+    {
+      title: 'Cache Management',
+      icon: 'hardware-chip-outline',
+      onPress: () => navigation.navigate('CacheManager')
+    },
   ];
 
   const renderMenuItem = (item, index) => (

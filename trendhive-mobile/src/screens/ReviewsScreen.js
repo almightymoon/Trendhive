@@ -374,7 +374,6 @@ export default function ReviewsScreen({ navigation }) {
                   onPress={() => handleEditReview(review)}
                   style={[styles.editButton, { borderColor: colors.border }]}
                   textColor={colors.text}
-                  icon="edit"
                 >
                   Edit
                 </Button>
@@ -383,7 +382,6 @@ export default function ReviewsScreen({ navigation }) {
                   onPress={() => handleDeleteReview(review)}
                   style={[styles.deleteButton, { borderColor: colors.error }]}
                   textColor={colors.error}
-                  icon="trash-outline"
                 >
                   Delete
                 </Button>
