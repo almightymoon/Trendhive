@@ -153,7 +153,12 @@ export default function OrderDetailScreen({ route, navigation }) {
         <Card style={styles.sectionCard}>
           <Card.Content>
             <Title style={styles.sectionTitle}>Order Items</Title>
-            <Text style={styles.noItemsText}>No items found in this order.</Text>
+            <Text style={styles.noItemsText}>
+              No items found in this order. This might be due to a data issue during order creation.
+            </Text>
+            <Text style={styles.noItemsText}>
+              Order Total: ${(order.total || order.amount || order.price || 0).toFixed(2)}
+            </Text>
           </Card.Content>
         </Card>
       );
@@ -199,9 +204,31 @@ export default function OrderDetailScreen({ route, navigation }) {
   const renderShippingInfo = () => {
     console.log('OrderDetailScreen - Shipping info:', order.shippingInfo);
     console.log('OrderDetailScreen - User info:', order.user);
+    console.log('OrderDetailScreen - Full order data:', JSON.stringify(order, null, 2));
     
-    // Get shipping info from either shippingInfo or user object
+    // Get shipping info from multiple possible sources
     const shippingData = order.shippingInfo || order.user || {};
+    
+    // Check if we have any meaningful shipping data
+    const hasShippingData = shippingData.fullName || shippingData.name || 
+                           shippingData.email || shippingData.address ||
+                           shippingData.phone || shippingData.city;
+    
+    if (!hasShippingData) {
+      return (
+        <Card style={styles.sectionCard}>
+          <Card.Content>
+            <Title style={styles.sectionTitle}>Shipping Information</Title>
+            <Text style={styles.noItemsText}>
+              No shipping information available for this order.
+            </Text>
+            <Text style={styles.noItemsText}>
+              Order was created without shipping details.
+            </Text>
+          </Card.Content>
+        </Card>
+      );
+    }
     
     return (
       <Card style={styles.sectionCard}>
@@ -232,15 +259,17 @@ export default function OrderDetailScreen({ route, navigation }) {
                 {shippingData.address || 'N/A'}
               </Text>
             </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="business-outline" size={20} color="#6b7280" />
-              <Text style={styles.infoText}>
-                {shippingData.city && shippingData.state && shippingData.zipCode 
-                  ? `${shippingData.city}, ${shippingData.state} ${shippingData.zipCode}`
-                  : shippingData.city || shippingData.state || shippingData.zipCode || 'N/A'
-                }
-              </Text>
-            </View>
+            {(shippingData.city || shippingData.state || shippingData.zipCode) && (
+              <View style={styles.infoRow}>
+                <Ionicons name="business-outline" size={20} color="#6b7280" />
+                <Text style={styles.infoText}>
+                  {shippingData.city && shippingData.state && shippingData.zipCode
+                    ? `${shippingData.city}, ${shippingData.state} ${shippingData.zipCode}`
+                    : [shippingData.city, shippingData.state, shippingData.zipCode].filter(Boolean).join(', ') || 'N/A'
+                  }
+                </Text>
+              </View>
+            )}
             <View style={styles.infoRow}>
               <Ionicons name="flag-outline" size={20} color="#6b7280" />
               <Text style={styles.infoText}>
@@ -276,34 +305,41 @@ export default function OrderDetailScreen({ route, navigation }) {
   );
 
   const renderOrderSummary = () => {
-    console.log('OrderDetailScreen - Order summary data:', {
-      total: order.total,
-      amount: order.amount,
-      price: order.price
-    });
-    
-    // Get the total from various possible fields
-    const total = order.total || order.amount || order.price || 0;
+    const orderTotal = order.total || order.amount || order.price || 0;
     
     return (
       <Card style={styles.sectionCard}>
         <Card.Content>
           <Title style={styles.sectionTitle}>Order Summary</Title>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>${total.toFixed(2)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Shipping:</Text>
-            <Text style={styles.summaryValue}>$0.00</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Tax:</Text>
-            <Text style={styles.summaryValue}>$0.00</Text>
-          </View>
-          <View style={[styles.summaryRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Order Number:</Text>
+              <Text style={styles.summaryValue}>
+                {order.orderNumber || order.orderId || order._id}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Date:</Text>
+              <Text style={styles.summaryValue}>
+                {new Date(order.date || order.createdAt).toLocaleDateString()}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Status:</Text>
+              <Text style={[styles.summaryValue, styles.statusText]}>
+                {order.status || 'Pending'}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Payment Method:</Text>
+              <Text style={styles.summaryValue}>
+                {order.paymentMethod || 'Unknown'}
+              </Text>
+            </View>
+            <View style={[styles.summaryRow, styles.totalRow]}>
+              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalAmount}>${orderTotal.toFixed(2)}</Text>
+            </View>
           </View>
         </Card.Content>
       </Card>
@@ -317,6 +353,7 @@ export default function OrderDetailScreen({ route, navigation }) {
         style={styles.actionButton}
         onPress={handleTrackOrder}
         icon="map-outline"
+        textColor="#000000"
       >
         Track Order
       </Button>
@@ -325,6 +362,7 @@ export default function OrderDetailScreen({ route, navigation }) {
         style={styles.actionButton}
         onPress={handleContactSupport}
         icon="help-circle-outline"
+        textColor="#000000"
       >
         Contact Support
       </Button>
@@ -333,6 +371,8 @@ export default function OrderDetailScreen({ route, navigation }) {
         style={[styles.actionButton, styles.reorderButton]}
         onPress={handleReorder}
         icon="refresh"
+        buttonColor="#10B981"
+        textColor="white"
       >
         Reorder
       </Button>
@@ -478,11 +518,13 @@ const styles = StyleSheet.create({
   paymentInfo: {
     gap: 10,
   },
+  summaryContainer: {
+    gap: 10,
+  },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5,
   },
   summaryLabel: {
     fontSize: 14,
@@ -504,7 +546,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1f2937',
   },
-  totalValue: {
+  totalAmount: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#10B981',

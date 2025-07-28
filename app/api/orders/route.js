@@ -19,32 +19,35 @@ export async function GET(req) {
     }
     
     // Find orders for this user
-    const orders = await db.collection('orders').find({ userId }).sort({ createdAt: -1 }).toArray();
-    
-    // Ensure all orders have proper fields
+    const orders = await db.collection('orders')
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    // Format orders to ensure consistent structure
     const formattedOrders = orders.map(order => ({
       _id: order._id,
       orderNumber: order.orderNumber || order._id.toString().slice(-8).toUpperCase(),
       orderId: order._id,
-      amount: order.amount || 0,
-      total: order.amount || order.price || 0,
-      price: order.price || order.amount || 0,
+      amount: order.amount || order.total || order.price || 0,
+      total: order.total || order.amount || order.price || 0,
+      price: order.price || order.amount || order.total || 0,
       products: order.products || order.items || [],
       items: order.items || order.products || [],
       productName: order.productName || '',
-      paymentMethod: order.paymentMethod || 'Unknown',
+      paymentMethod: order.paymentMethod || 'unknown',
       paypalOrderId: order.paypalOrderId || null,
       status: order.status || 'Pending',
       currency: order.currency || 'usd',
       paypalDetails: order.paypalDetails || null,
-      user: order.user || {},
+      user: order.user || order.shippingInfo || {},
       userId: order.userId,
       date: order.date || order.createdAt,
       createdAt: order.createdAt,
-      shippingInfo: order.shippingInfo || {},
-      paymentIntentId: order.paymentIntentId || null
+      shippingInfo: order.shippingInfo || order.user || {},
+      paymentIntentId: order.paymentIntentId || null,
     }));
-    
+
     return Response.json(formattedOrders);
   } catch (err) {
     return Response.json({ error: 'Failed to load orders', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
@@ -93,14 +96,15 @@ export async function POST(req) {
     }
     
     // Otherwise, handle order creation (existing logic)
-    const { amount, products, paymentMethod, paypalOrderId, status, currency, paypalDetails, userId } = orderData;
+    const { amount, products, paymentMethod, paypalOrderId, status, currency, paypalDetails, userId, shippingInfo, total } = orderData;
     const db = await connectToDatabase();
 
     // Extract user info for PayPal orders
     let user = undefined;
-    let price = amount;
+    let price = amount || total;
     let productName = Array.isArray(products) && products.length > 0 ? products[0].title || products[0].name : undefined;
     let date = new Date();
+    
     if (paymentMethod === 'paypal' && paypalDetails) {
       // Extract name and address from PayPal details
       const payer = paypalDetails.payer || {};
@@ -113,29 +117,52 @@ export async function POST(req) {
           : '-',
       };
       // Use PayPal's amount if available
-      price = paypalDetails.purchase_units?.[0]?.amount?.value || amount;
+      price = paypalDetails.purchase_units?.[0]?.amount?.value || amount || total;
       // Use first item name if available
       productName = paypalDetails.purchase_units?.[0]?.items?.[0]?.name || productName;
       // Use PayPal's update_time or create_time if available
       date = paypalDetails.update_time || paypalDetails.create_time || date;
+    } else if (shippingInfo) {
+      // Use shipping info for non-PayPal orders
+      user = {
+        name: shippingInfo.fullName || '-',
+        email: shippingInfo.email || '-',
+        phone: shippingInfo.phone || '-',
+        address: shippingInfo.address || '-',
+        city: shippingInfo.city || '-',
+        state: shippingInfo.state || '-',
+        country: shippingInfo.country || '-',
+        zipCode: shippingInfo.zipCode || '-',
+      };
     }
 
     const result = await db.collection('orders').insertOne({
-      amount,
-      price,
+      amount: amount || total,
+      price: price,
+      total: total || amount,
       products,
+      items: products, // Also save as items for compatibility
       productName,
       paymentMethod,
       paypalOrderId,
-      status,
-      currency,
+      status: status || 'Pending',
+      currency: currency || 'usd',
       paypalDetails,
       user,
+      shippingInfo, // Save shipping info
       userId,
       date,
       createdAt: new Date(),
     });
-    return Response.json({ success: true, orderId: result.insertedId });
+    
+    // Generate order number
+    const orderNumber = result.insertedId.toString().slice(-8).toUpperCase();
+    
+    return Response.json({ 
+      success: true, 
+      orderId: result.insertedId,
+      orderNumber: orderNumber
+    });
   } catch (err) {
     return Response.json({ error: 'Failed to process order request', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }

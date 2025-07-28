@@ -14,12 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import CoolHeader from '../components/CoolHeader';
 
 export default function WishlistScreen({ navigation }) {
   const { wishlistItems, removeFromWishlist, clearWishlist, loading, loadWishlist } = useWishlist();
   const { addToCart } = useCart();
   const { user, isAuthenticated } = useAuth();
+  const { showSuccess, showError } = useNotification();
 
   // Refresh wishlist when screen comes into focus
   React.useEffect(() => {
@@ -31,19 +33,13 @@ export default function WishlistScreen({ navigation }) {
   }, [navigation, loadWishlist]);
 
   const handleRemoveFromWishlist = (product) => {
-    Alert.alert(
-      'Remove from Wishlist',
-      `Remove "${product.name}" from your wishlist?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => removeFromWishlist(product) }
-      ]
-    );
+    removeFromWishlist(product);
+    showSuccess(`${product.name} has been removed from your wishlist!`);
   };
 
   const handleAddToCart = (product) => {
     addToCart(product);
-    Alert.alert('Added to Cart', `${product.name} has been added to your cart!`);
+    showSuccess(`${product.name} has been added to your cart!`);
   };
 
   const handleClearWishlist = () => {
@@ -52,21 +48,16 @@ export default function WishlistScreen({ navigation }) {
       'Are you sure you want to remove all items from your wishlist?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Clear All', style: 'destructive', onPress: clearWishlist }
+        { 
+          text: 'Clear All', 
+          style: 'destructive', 
+          onPress: () => {
+            clearWishlist();
+            showSuccess('Your wishlist has been cleared!');
+          }
+        }
       ]
     );
-  };
-
-  // Debug function to clear AsyncStorage
-  const handleDebugClear = async () => {
-    try {
-      const userId = user?.id || user?._id;
-      const storageKey = userId ? `wishlist_${userId}` : 'wishlist_guest';
-      await AsyncStorage.removeItem(storageKey);
-      Alert.alert('Debug', `AsyncStorage cleared for key: ${storageKey}. Please restart the app.`);
-    } catch (error) {
-      console.error('Error clearing AsyncStorage:', error);
-    }
   };
 
   const renderWishlistItem = (product, index) => (
@@ -97,6 +88,7 @@ export default function WishlistScreen({ navigation }) {
             style={styles.actionButton}
             onPress={() => handleAddToCart(product)}
             icon="cart-plus"
+            textColor="#10B981"
           >
             Add to Cart
           </Button>
@@ -121,7 +113,7 @@ export default function WishlistScreen({ navigation }) {
       <Button
         mode="contained"
         style={styles.browseButton}
-        onPress={() => navigation.navigate('Products')}
+        onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })}
         icon="shopping"
       >
         Browse Products
@@ -144,15 +136,6 @@ export default function WishlistScreen({ navigation }) {
     );
   }
 
-  console.log('WishlistScreen render - items:', wishlistItems.length, wishlistItems);
-  console.log('WishlistScreen render - user:', user?.id || user?._id, 'loading:', loading);
-
-  // Add more detailed debugging
-  console.log('WishlistScreen - Full wishlistItems:', JSON.stringify(wishlistItems, null, 2));
-  console.log('WishlistScreen - User object:', JSON.stringify(user, null, 2));
-  console.log('WishlistScreen - Loading state:', loading);
-  console.log('WishlistScreen - Is authenticated:', isAuthenticated);
-
   return (
     <View style={styles.container}>
       <CoolHeader
@@ -161,24 +144,10 @@ export default function WishlistScreen({ navigation }) {
         onBack={() => navigation.goBack()}
       />
       <ScrollView style={styles.scrollView}>
-        {/* Debug Info */}
-        <View style={{ padding: 10, backgroundColor: '#f0f0f0', margin: 10 }}>
-          <Text style={{ fontSize: 12, color: '#666' }}>
-            Debug: User ID: {user?.id || user?._id || 'No user'}{'\n'}
-            Loading: {loading ? 'Yes' : 'No'}{'\n'}
-            Items: {wishlistItems.length}{'\n'}
-            Items &gt; 0: {wishlistItems.length > 0 ? 'Yes' : 'No'}
-          </Text>
-        </View>
-
         {wishlistItems.length > 0 ? (
           <>
             <View style={styles.productsContainer}>
-              <Text style={{ color: 'red', fontSize: 16, marginBottom: 10 }}>
-                Debug: Found {wishlistItems.length} items to render
-              </Text>
               {wishlistItems.map((item, index) => {
-                console.log('Rendering wishlist item:', item.name, 'at index:', index);
                 return renderWishlistItem(item, index);
               })}
             </View>
@@ -193,15 +162,6 @@ export default function WishlistScreen({ navigation }) {
                   textColor="#ef4444"
                 >
                   Clear All Items
-                </Button>
-                <Button
-                  mode="outlined"
-                  style={[styles.clearButton, { marginTop: 10 }]}
-                  onPress={handleDebugClear}
-                  icon="bug"
-                  textColor="#6b7280"
-                >
-                  Debug: Clear Storage
                 </Button>
               </Card.Content>
             </Card>

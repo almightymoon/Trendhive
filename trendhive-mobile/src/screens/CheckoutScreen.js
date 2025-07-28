@@ -158,13 +158,14 @@ export default function CheckoutScreen({ navigation }) {
       const userId = user._id || user.id;
       const orderData = {
         userId,
-        items: cartItems,
-        shippingInfo,
+        products: cartItems, // Changed from items to products
+        amount: total,
+        total: total,
+        shippingInfo, // Add shipping info
         paymentMethod,
-        subtotal,
-        shipping,
-        tax,
-        total,
+        status: 'Pending',
+        currency: 'usd',
+        date: new Date(),
       };
 
       const order = await apiService.createOrder(orderData);

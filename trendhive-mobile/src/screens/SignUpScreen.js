@@ -12,6 +12,8 @@ import {
 import { TextInput, Button, Title, Checkbox } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
+import CoolHeader from '../components/CoolHeader';
 
 export default function SignUpScreen({ navigation }) {
   const [formData, setFormData] = useState({
@@ -22,11 +24,13 @@ export default function SignUpScreen({ navigation }) {
     confirmPassword: '',
     phone: '',
   });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { signUp } = useAuth();
+  const { showSuccess, showError } = useNotification();
 
   const updateFormData = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -66,27 +70,45 @@ export default function SignUpScreen({ navigation }) {
 
     setLoading(true);
     try {
-      const result = await signUp(formData);
-      if (result.success) {
-        // Navigate to main app after successful sign up
-        navigation.replace('MainTabs');
+      // Prepare user data for signup
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone || '',
+      };
+
+      const response = await signUp(userData);
+      if (response.success || response.message) {
+        showSuccess('Account created successfully!');
+        signUp(response.token, response.user);
+        navigation.navigate('MainTabs');
       } else {
-        // Show specific error message
-        let errorMessage = 'Sign up failed';
-        if (result.error) {
-          if (result.error.includes('User already exists')) {
-            errorMessage = 'An account with this email already exists. Please sign in instead.';
-          } else if (result.error.includes('Missing required fields')) {
-            errorMessage = 'Please fill in all required fields.';
-          } else {
-            errorMessage = result.error;
-          }
-        }
-        Alert.alert('Sign Up Failed', errorMessage);
+        showError(response.error || 'Sign up failed');
       }
     } catch (error) {
       console.error('Sign up error:', error);
-      Alert.alert('Error', 'Network error. Please check your connection and try again.');
+      
+      if (error.response && error.response.data && error.response.data.error) {
+        const errorMessage = error.response.data.error;
+        showError(errorMessage);
+        
+        // Set field-specific errors
+        if (errorMessage.toLowerCase().includes('name')) {
+          setErrors({ firstName: errorMessage });
+        } else if (errorMessage.toLowerCase().includes('email')) {
+          setErrors({ email: errorMessage });
+        } else if (errorMessage.toLowerCase().includes('password')) {
+          setErrors({ password: errorMessage });
+        } else {
+          setErrors({ general: errorMessage });
+        }
+      } else if (error.message) {
+        showError(error.message);
+      } else {
+        showError('Network error. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -121,8 +143,9 @@ export default function SignUpScreen({ navigation }) {
               value={formData.firstName}
               onChangeText={(value) => updateFormData('firstName', value)}
               mode="outlined"
-              style={[styles.input, styles.halfInput]}
+              style={[styles.input, styles.halfInput, errors.firstName ? styles.inputError : null]}
               autoCapitalize="words"
+              error={!!errors.firstName}
               theme={{
                 colors: {
                   primary: '#10B981',
@@ -131,7 +154,7 @@ export default function SignUpScreen({ navigation }) {
                   background: 'white',
                   onSurface: '#000000',
                   surface: 'white',
-                  outline: '#d1d5db',
+                  outline: errors.firstName ? '#ef4444' : '#d1d5db',
                   onSurfaceVariant: '#10B981',
                   primaryContainer: '#10B981',
                   onPrimaryContainer: '#ffffff',
@@ -146,8 +169,9 @@ export default function SignUpScreen({ navigation }) {
               value={formData.lastName}
               onChangeText={(value) => updateFormData('lastName', value)}
               mode="outlined"
-              style={[styles.input, styles.halfInput]}
+              style={[styles.input, styles.halfInput, errors.lastName ? styles.inputError : null]}
               autoCapitalize="words"
+              error={!!errors.lastName}
               theme={{
                 colors: {
                   primary: '#10B981',
@@ -156,7 +180,7 @@ export default function SignUpScreen({ navigation }) {
                   background: 'white',
                   onSurface: '#000000',
                   surface: 'white',
-                  outline: '#d1d5db',
+                  outline: errors.lastName ? '#ef4444' : '#d1d5db',
                   onSurfaceVariant: '#10B981',
                   primaryContainer: '#10B981',
                   onPrimaryContainer: '#ffffff',
@@ -167,17 +191,20 @@ export default function SignUpScreen({ navigation }) {
               }}
             />
           </View>
+          {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
+          {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
 
           <TextInput
             label="Email"
             value={formData.email}
             onChangeText={(value) => updateFormData('email', value)}
             mode="outlined"
-            style={styles.input}
+            style={[styles.input, errors.email ? styles.inputError : null]}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             left={<TextInput.Icon icon="email" />}
+            error={!!errors.email}
             theme={{
               colors: {
                 primary: '#10B981',
@@ -186,7 +213,7 @@ export default function SignUpScreen({ navigation }) {
                 background: 'white',
                 onSurface: '#000000',
                 surface: 'white',
-                outline: '#d1d5db',
+                outline: errors.email ? '#ef4444' : '#d1d5db',
                 onSurfaceVariant: '#10B981',
                 primaryContainer: '#10B981',
                 onPrimaryContainer: '#ffffff',
@@ -196,6 +223,7 @@ export default function SignUpScreen({ navigation }) {
               }
             }}
           />
+          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
           <TextInput
             label="Phone (Optional)"
@@ -229,7 +257,7 @@ export default function SignUpScreen({ navigation }) {
             value={formData.password}
             onChangeText={(value) => updateFormData('password', value)}
             mode="outlined"
-            style={styles.input}
+            style={[styles.input, errors.password ? styles.inputError : null]}
             secureTextEntry={!showPassword}
             autoCapitalize="none"
             left={<TextInput.Icon icon="lock" />}
@@ -239,6 +267,7 @@ export default function SignUpScreen({ navigation }) {
                 onPress={() => setShowPassword(!showPassword)}
               />
             }
+            error={!!errors.password}
             theme={{
               colors: {
                 primary: '#10B981',
@@ -247,7 +276,7 @@ export default function SignUpScreen({ navigation }) {
                 background: 'white',
                 onSurface: '#000000',
                 surface: 'white',
-                outline: '#d1d5db',
+                outline: errors.password ? '#ef4444' : '#d1d5db',
                 onSurfaceVariant: '#10B981',
                 primaryContainer: '#10B981',
                 onPrimaryContainer: '#ffffff',
@@ -257,13 +286,14 @@ export default function SignUpScreen({ navigation }) {
               }
             }}
           />
+          {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
           <TextInput
             label="Confirm Password"
             value={formData.confirmPassword}
             onChangeText={(value) => updateFormData('confirmPassword', value)}
             mode="outlined"
-            style={styles.input}
+            style={[styles.input, errors.confirmPassword ? styles.inputError : null]}
             secureTextEntry={!showConfirmPassword}
             autoCapitalize="none"
             left={<TextInput.Icon icon="lock" />}
@@ -273,6 +303,7 @@ export default function SignUpScreen({ navigation }) {
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
               />
             }
+            error={!!errors.confirmPassword}
             theme={{
               colors: {
                 primary: '#10B981',
@@ -281,7 +312,7 @@ export default function SignUpScreen({ navigation }) {
                 background: 'white',
                 onSurface: '#000000',
                 surface: 'white',
-                outline: '#d1d5db',
+                outline: errors.confirmPassword ? '#ef4444' : '#d1d5db',
                 onSurfaceVariant: '#10B981',
                 primaryContainer: '#10B981',
                 onPrimaryContainer: '#ffffff',
@@ -291,6 +322,9 @@ export default function SignUpScreen({ navigation }) {
               }
             }}
           />
+          {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
+
+          {errors.general ? <Text style={styles.generalErrorText}>{errors.general}</Text> : null}
 
           <View style={styles.termsContainer}>
             <Checkbox
@@ -388,6 +422,23 @@ const styles = StyleSheet.create({
   },
   halfInput: {
     flex: 1,
+  },
+  inputError: {
+    borderColor: '#ef4444',
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  generalErrorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 15,
+    paddingHorizontal: 10,
   },
   termsContainer: {
     flexDirection: 'row',

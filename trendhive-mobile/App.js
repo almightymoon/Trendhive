@@ -33,6 +33,7 @@ import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { CartProvider } from './src/contexts/CartContext';
 import { WishlistProvider } from './src/contexts/WishlistContext';
+import { NotificationProvider } from './src/contexts/NotificationContext';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -215,16 +216,18 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <PaperProvider>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <NavigationContainer>
-                <StatusBar style="light" backgroundColor="#10B981" translucent={false} />
-                <AppNavigator />
-              </NavigationContainer>
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <NavigationContainer>
+                  <StatusBar style="auto" />
+                  <AppNavigator />
+                </NavigationContainer>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </NotificationProvider>
       </PaperProvider>
     </SafeAreaProvider>
   );
