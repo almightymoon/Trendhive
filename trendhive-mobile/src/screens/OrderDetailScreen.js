@@ -16,6 +16,29 @@ export default function OrderDetailScreen({ route, navigation }) {
   const { order } = route.params;
   const [loading, setLoading] = useState(false);
 
+  // Add debugging
+  console.log('OrderDetailScreen - Received order:', order);
+  console.log('OrderDetailScreen - Route params:', route.params);
+
+  // Check if order exists
+  if (!order) {
+    console.error('OrderDetailScreen - No order data received');
+    return (
+      <View style={styles.container}>
+        <CoolHeader
+          title="Order Details"
+          subtitle="Error"
+          onBack={() => navigation.goBack()}
+        />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ fontSize: 16, color: '#ef4444', textAlign: 'center' }}>
+            No order data received. Please go back and try again.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'pending':
@@ -118,84 +141,117 @@ export default function OrderDetailScreen({ route, navigation }) {
     </Card>
   );
 
-  const renderOrderItems = () => (
-    <Card style={styles.sectionCard}>
-      <Card.Content>
-        <Title style={styles.sectionTitle}>Order Items</Title>
-        {order.items?.map((item, index) => (
-          <View key={index} style={styles.orderItem}>
-            <Image
-              source={{ uri: item.mainImage || item.image }}
-              style={styles.itemImage}
-              resizeMode="cover"
-            />
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemName} numberOfLines={2}>
-                {item.name}
-              </Text>
-              <Text style={styles.itemPrice}>
-                ${item.price?.toFixed(2) || '0.00'}
-              </Text>
-              <Text style={styles.itemQuantity}>
-                Quantity: {item.quantity}
-              </Text>
-            </View>
-            <View style={styles.itemTotal}>
-              <Text style={styles.itemTotalText}>
-                ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </Card.Content>
-    </Card>
-  );
+  const renderOrderItems = () => {
+    console.log('OrderDetailScreen - Rendering order items:', order.items);
+    console.log('OrderDetailScreen - Order structure:', JSON.stringify(order, null, 2));
+    
+    // Handle different possible data structures
+    const items = order.items || order.products || [];
+    
+    if (items.length === 0) {
+      return (
+        <Card style={styles.sectionCard}>
+          <Card.Content>
+            <Title style={styles.sectionTitle}>Order Items</Title>
+            <Text style={styles.noItemsText}>No items found in this order.</Text>
+          </Card.Content>
+        </Card>
+      );
+    }
 
-  const renderShippingInfo = () => (
-    <Card style={styles.sectionCard}>
-      <Card.Content>
-        <Title style={styles.sectionTitle}>Shipping Information</Title>
-        <View style={styles.shippingInfo}>
-          <View style={styles.infoRow}>
-            <Ionicons name="person-outline" size={20} color="#6b7280" />
-            <Text style={styles.infoText}>
-              {order.shippingInfo?.fullName || 'N/A'}
-            </Text>
+    return (
+      <Card style={styles.sectionCard}>
+        <Card.Content>
+          <Title style={styles.sectionTitle}>Order Items</Title>
+          {items.map((item, index) => {
+            console.log('Rendering item:', item);
+            return (
+              <View key={index} style={styles.orderItem}>
+                <Image
+                  source={{ uri: item.mainImage || item.image || item.images?.[0] }}
+                  style={styles.itemImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.itemDetails}>
+                  <Text style={styles.itemName} numberOfLines={2}>
+                    {item.name || item.title}
+                  </Text>
+                  <Text style={styles.itemPrice}>
+                    ${(item.price || 0).toFixed(2)}
+                  </Text>
+                  <Text style={styles.itemQuantity}>
+                    Quantity: {item.quantity || 1}
+                  </Text>
+                </View>
+                <View style={styles.itemTotal}>
+                  <Text style={styles.itemTotalText}>
+                    ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </Card.Content>
+      </Card>
+    );
+  };
+
+  const renderShippingInfo = () => {
+    console.log('OrderDetailScreen - Shipping info:', order.shippingInfo);
+    console.log('OrderDetailScreen - User info:', order.user);
+    
+    // Get shipping info from either shippingInfo or user object
+    const shippingData = order.shippingInfo || order.user || {};
+    
+    return (
+      <Card style={styles.sectionCard}>
+        <Card.Content>
+          <Title style={styles.sectionTitle}>Shipping Information</Title>
+          <View style={styles.shippingInfo}>
+            <View style={styles.infoRow}>
+              <Ionicons name="person-outline" size={20} color="#6b7280" />
+              <Text style={styles.infoText}>
+                {shippingData.fullName || shippingData.name || 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Ionicons name="mail-outline" size={20} color="#6b7280" />
+              <Text style={styles.infoText}>
+                {shippingData.email || 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Ionicons name="call-outline" size={20} color="#6b7280" />
+              <Text style={styles.infoText}>
+                {shippingData.phone || 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Ionicons name="location-outline" size={20} color="#6b7280" />
+              <Text style={styles.infoText}>
+                {shippingData.address || 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Ionicons name="business-outline" size={20} color="#6b7280" />
+              <Text style={styles.infoText}>
+                {shippingData.city && shippingData.state && shippingData.zipCode 
+                  ? `${shippingData.city}, ${shippingData.state} ${shippingData.zipCode}`
+                  : shippingData.city || shippingData.state || shippingData.zipCode || 'N/A'
+                }
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Ionicons name="flag-outline" size={20} color="#6b7280" />
+              <Text style={styles.infoText}>
+                {shippingData.country || 'N/A'}
+              </Text>
+            </View>
           </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="mail-outline" size={20} color="#6b7280" />
-            <Text style={styles.infoText}>
-              {order.shippingInfo?.email || 'N/A'}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="call-outline" size={20} color="#6b7280" />
-            <Text style={styles.infoText}>
-              {order.shippingInfo?.phone || 'N/A'}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="location-outline" size={20} color="#6b7280" />
-            <Text style={styles.infoText}>
-              {order.shippingInfo?.address || 'N/A'}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="business-outline" size={20} color="#6b7280" />
-            <Text style={styles.infoText}>
-              {order.shippingInfo?.city}, {order.shippingInfo?.state} {order.shippingInfo?.zipCode}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="flag-outline" size={20} color="#6b7280" />
-            <Text style={styles.infoText}>
-              {order.shippingInfo?.country || 'N/A'}
-            </Text>
-          </View>
-        </View>
-      </Card.Content>
-    </Card>
-  );
+        </Card.Content>
+      </Card>
+    );
+  };
 
   const renderPaymentInfo = () => (
     <Card style={styles.sectionCard}>
@@ -219,29 +275,40 @@ export default function OrderDetailScreen({ route, navigation }) {
     </Card>
   );
 
-  const renderOrderSummary = () => (
-    <Card style={styles.sectionCard}>
-      <Card.Content>
-        <Title style={styles.sectionTitle}>Order Summary</Title>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Subtotal:</Text>
-          <Text style={styles.summaryValue}>${order.subtotal?.toFixed(2) || '0.00'}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Shipping:</Text>
-          <Text style={styles.summaryValue}>${order.shipping?.toFixed(2) || '0.00'}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Tax:</Text>
-          <Text style={styles.summaryValue}>${order.tax?.toFixed(2) || '0.00'}</Text>
-        </View>
-        <View style={[styles.summaryRow, styles.totalRow]}>
-          <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalValue}>${order.total?.toFixed(2) || '0.00'}</Text>
-        </View>
-      </Card.Content>
-    </Card>
-  );
+  const renderOrderSummary = () => {
+    console.log('OrderDetailScreen - Order summary data:', {
+      total: order.total,
+      amount: order.amount,
+      price: order.price
+    });
+    
+    // Get the total from various possible fields
+    const total = order.total || order.amount || order.price || 0;
+    
+    return (
+      <Card style={styles.sectionCard}>
+        <Card.Content>
+          <Title style={styles.sectionTitle}>Order Summary</Title>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal:</Text>
+            <Text style={styles.summaryValue}>${total.toFixed(2)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Shipping:</Text>
+            <Text style={styles.summaryValue}>$0.00</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Tax:</Text>
+            <Text style={styles.summaryValue}>$0.00</Text>
+          </View>
+          <View style={[styles.summaryRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+          </View>
+        </Card.Content>
+      </Card>
+    );
+  };
 
   const renderActionButtons = () => (
     <View style={styles.actionButtons}>
@@ -292,6 +359,10 @@ export default function OrderDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
   scrollView: {
     flex: 1,
   },
@@ -450,5 +521,11 @@ const styles = StyleSheet.create({
   },
   reorderButton: {
     backgroundColor: '#10B981',
+  },
+  noItemsText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    paddingVertical: 10,
   },
 }); 

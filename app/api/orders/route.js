@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/app/utils/mongodb';
 import jwt from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
 
 export async function GET(req) {
   try {
@@ -52,7 +53,47 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const { amount, products, paymentMethod, paypalOrderId, status, currency, paypalDetails, userId } = await req.json();
+    const body = await req.json();
+    const { action, orderId, ...orderData } = body;
+    
+    // If action is delete, handle order deletion
+    if (action === 'delete') {
+      const db = await connectToDatabase();
+      const auth = req.headers.get('authorization');
+      if (!auth || !auth.startsWith('Bearer ')) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      const token = auth.split(' ')[1];
+      let userId;
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.userId;
+      } catch (e) {
+        return Response.json({ error: 'Invalid token' }, { status: 401 });
+      }
+
+      if (!orderId) {
+        return Response.json({ error: 'Order ID is required' }, { status: 400 });
+      }
+
+      // Delete the order (only if it belongs to the user)
+      const result = await db.collection('orders').deleteOne({ 
+        _id: new ObjectId(orderId), 
+        userId: userId 
+      });
+
+      if (result.deletedCount === 0) {
+        return Response.json({ error: 'Order not found or not authorized to delete' }, { status: 404 });
+      }
+
+      return Response.json({ 
+        success: true, 
+        message: 'Order deleted successfully' 
+      });
+    }
+    
+    // Otherwise, handle order creation (existing logic)
+    const { amount, products, paymentMethod, paypalOrderId, status, currency, paypalDetails, userId } = orderData;
     const db = await connectToDatabase();
 
     // Extract user info for PayPal orders
@@ -96,6 +137,50 @@ export async function POST(req) {
     });
     return Response.json({ success: true, orderId: result.insertedId });
   } catch (err) {
-    return Response.json({ error: 'Failed to save order', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    return Response.json({ error: 'Failed to process order request', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+  }
+} 
+
+export async function DELETE(req) {
+  try {
+    const db = await connectToDatabase();
+    const auth = req.headers.get('authorization');
+    if (!auth || !auth.startsWith('Bearer ')) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const token = auth.split(' ')[1];
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.userId;
+    } catch (e) {
+      return Response.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const { orderId } = await req.json();
+    
+    if (!orderId) {
+      return Response.json({ error: 'Order ID is required' }, { status: 400 });
+    }
+
+    // Delete the order (only if it belongs to the user)
+    const result = await db.collection('orders').deleteOne({ 
+      _id: new ObjectId(orderId), 
+      userId: userId 
+    });
+
+    if (result.deletedCount === 0) {
+      return Response.json({ error: 'Order not found or not authorized to delete' }, { status: 404 });
+    }
+
+    return Response.json({ 
+      success: true, 
+      message: 'Order deleted successfully' 
+    });
+  } catch (err) {
+    return Response.json({ 
+      error: 'Failed to delete order', 
+      details: err instanceof Error ? err.message : String(err) 
+    }, { status: 500 });
   }
 } 

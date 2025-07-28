@@ -161,7 +161,7 @@ export default function AboutScreen({ navigation }) {
 
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => handleOpenLink('https://217.196.51.104:4000/privacy')}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
           >
             <Ionicons name="shield" size={20} color="#10B981" />
             <Text style={styles.linkText}>Privacy Policy</Text>
@@ -170,7 +170,7 @@ export default function AboutScreen({ navigation }) {
 
           <TouchableOpacity 
             style={styles.linkItem}
-            onPress={() => handleOpenLink('https://217.196.51.104:4000/terms')}
+            onPress={() => navigation.navigate('TermsOfService')}
           >
             <Ionicons name="document-text" size={20} color="#10B981" />
             <Text style={styles.linkText}>Terms of Service</Text>

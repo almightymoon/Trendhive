@@ -265,6 +265,23 @@ export default function CheckoutScreen({ navigation }) {
           onChangeText={(value) => updateShippingInfo('fullName', value)}
             mode="outlined"
           style={styles.input}
+          theme={{
+            colors: {
+              primary: '#10B981',
+              text: '#000000',
+              placeholder: '#666666',
+              background: 'white',
+              onSurface: '#000000',
+              surface: 'white',
+              outline: '#d1d5db',
+              onSurfaceVariant: '#10B981',
+              primaryContainer: '#10B981',
+              onPrimaryContainer: '#ffffff',
+              secondary: '#10B981',
+              secondaryContainer: '#10B981',
+              onSecondaryContainer: '#ffffff',
+            }
+          }}
           />
 
         <TextInput
@@ -274,6 +291,23 @@ export default function CheckoutScreen({ navigation }) {
           mode="outlined"
           style={styles.input}
           keyboardType="email-address"
+          theme={{
+            colors: {
+              primary: '#10B981',
+              text: '#000000',
+              placeholder: '#666666',
+              background: 'white',
+              onSurface: '#000000',
+              surface: 'white',
+              outline: '#d1d5db',
+              onSurfaceVariant: '#10B981',
+              primaryContainer: '#10B981',
+              onPrimaryContainer: '#ffffff',
+              secondary: '#10B981',
+              secondaryContainer: '#10B981',
+              onSecondaryContainer: '#ffffff',
+            }
+          }}
         />
 
         <TextInput
@@ -283,6 +317,23 @@ export default function CheckoutScreen({ navigation }) {
           mode="outlined"
           style={styles.input}
           keyboardType="phone-pad"
+          theme={{
+            colors: {
+              primary: '#10B981',
+              text: '#000000',
+              placeholder: '#666666',
+              background: 'white',
+              onSurface: '#000000',
+              surface: 'white',
+              outline: '#d1d5db',
+              onSurfaceVariant: '#10B981',
+              primaryContainer: '#10B981',
+              onPrimaryContainer: '#ffffff',
+              secondary: '#10B981',
+              secondaryContainer: '#10B981',
+              onSecondaryContainer: '#ffffff',
+            }
+          }}
         />
 
         <TextInput
@@ -292,6 +343,23 @@ export default function CheckoutScreen({ navigation }) {
           mode="outlined"
           style={styles.input}
           multiline
+          theme={{
+            colors: {
+              primary: '#10B981',
+              text: '#000000',
+              placeholder: '#666666',
+              background: 'white',
+              onSurface: '#000000',
+              surface: 'white',
+              outline: '#d1d5db',
+              onSurfaceVariant: '#10B981',
+              primaryContainer: '#10B981',
+              onPrimaryContainer: '#ffffff',
+              secondary: '#10B981',
+              secondaryContainer: '#10B981',
+              onSecondaryContainer: '#ffffff',
+            }
+          }}
         />
 
         <View style={styles.formRow}>
@@ -301,6 +369,23 @@ export default function CheckoutScreen({ navigation }) {
             onChangeText={(value) => updateShippingInfo('city', value)}
             mode="outlined"
             style={[styles.input, styles.halfInput]}
+            theme={{
+              colors: {
+                primary: '#10B981',
+                text: '#000000',
+                placeholder: '#666666',
+                background: 'white',
+                onSurface: '#000000',
+                surface: 'white',
+                outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
+              }
+            }}
           />
           <TextInput
             label="State"
@@ -308,6 +393,23 @@ export default function CheckoutScreen({ navigation }) {
             onChangeText={(value) => updateShippingInfo('state', value)}
             mode="outlined"
             style={[styles.input, styles.halfInput]}
+            theme={{
+              colors: {
+                primary: '#10B981',
+                text: '#000000',
+                placeholder: '#666666',
+                background: 'white',
+                onSurface: '#000000',
+                surface: 'white',
+                outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
+              }
+            }}
           />
         </View>
 
@@ -319,6 +421,23 @@ export default function CheckoutScreen({ navigation }) {
             mode="outlined"
             style={[styles.input, styles.halfInput]}
             keyboardType="numeric"
+            theme={{
+              colors: {
+                primary: '#10B981',
+                text: '#000000',
+                placeholder: '#666666',
+                background: 'white',
+                onSurface: '#000000',
+                surface: 'white',
+                outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
+              }
+            }}
           />
           <TextInput
             label="Country"
@@ -326,6 +445,23 @@ export default function CheckoutScreen({ navigation }) {
             onChangeText={(value) => updateShippingInfo('country', value)}
             mode="outlined"
             style={[styles.input, styles.halfInput]}
+            theme={{
+              colors: {
+                primary: '#10B981',
+                text: '#000000',
+                placeholder: '#666666',
+                background: 'white',
+                onSurface: '#000000',
+                surface: 'white',
+                outline: '#d1d5db',
+                onSurfaceVariant: '#10B981',
+                primaryContainer: '#10B981',
+                onPrimaryContainer: '#ffffff',
+                secondary: '#10B981',
+                secondaryContainer: '#10B981',
+                onSecondaryContainer: '#ffffff',
+              }
+            }}
           />
         </View>
 

@@ -97,6 +97,10 @@ class ApiService {
     return this.api.get('/orders', { params: { userId } });
   }
 
+  async deleteOrder(orderId, userId) {
+    return this.api.post('/orders', { action: 'delete', orderId, userId });
+  }
+
   async getOrder(id) {
     return this.api.get(`/orders/${id}`);
   }

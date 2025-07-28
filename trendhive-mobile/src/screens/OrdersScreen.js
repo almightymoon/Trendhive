@@ -65,6 +65,41 @@ export default function OrdersScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  const handleDeleteOrder = async (order) => {
+    console.log('handleDeleteOrder called with order:', order);
+    console.log('User ID for deletion:', user._id || user.id);
+    
+    Alert.alert(
+      'Delete Order',
+      `Are you sure you want to delete Order #${order.orderNumber || order.orderId || order._id}? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              console.log('Starting order deletion...');
+              const userId = user._id || user.id;
+              console.log('Using user ID:', userId);
+              console.log('Order ID to delete:', order._id);
+              
+              const response = await apiService.deleteOrder(order._id, userId);
+              console.log('Delete order response:', response);
+              
+              Alert.alert('Success', 'Order deleted successfully!');
+              loadOrders(); // Reload the orders list
+            } catch (error) {
+              console.error('Error deleting order:', error);
+              console.error('Error details:', JSON.stringify(error, null, 2));
+              Alert.alert('Error', `Failed to delete order: ${error.message || error}`);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'pending':
@@ -144,13 +179,21 @@ export default function OrdersScreen({ navigation }) {
             <Text style={styles.totalLabel}>Total:</Text>
             <Text style={styles.totalAmount}>${order.total?.toFixed(2)}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.viewDetailsButton}
-            onPress={() => navigation.navigate('OrderDetail', { order })}
-          >
-            <Text style={styles.viewDetailsText}>View Details</Text>
-            <Ionicons name="chevron-forward" size={16} color="#10B981" />
-          </TouchableOpacity>
+          <View style={styles.orderActions}>
+            <TouchableOpacity
+              style={styles.viewDetailsButton}
+              onPress={() => navigation.navigate('OrderDetail', { order })}
+            >
+              <Text style={styles.viewDetailsText}>View Details</Text>
+              <Ionicons name="chevron-forward" size={16} color="#10B981" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDeleteOrder(order)}
+            >
+              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
         </View>
       </Card.Content>
     </Card>
@@ -380,5 +423,12 @@ const styles = StyleSheet.create({
     color: '#10B981',
     fontWeight: '600',
     marginRight: 5,
+  },
+  orderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    marginLeft: 15,
   },
 }); 

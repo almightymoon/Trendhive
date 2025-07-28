@@ -19,7 +19,7 @@ import CoolHeader from '../components/CoolHeader';
 export default function WishlistScreen({ navigation }) {
   const { wishlistItems, removeFromWishlist, clearWishlist, loading, loadWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   // Refresh wishlist when screen comes into focus
   React.useEffect(() => {
@@ -147,6 +147,12 @@ export default function WishlistScreen({ navigation }) {
   console.log('WishlistScreen render - items:', wishlistItems.length, wishlistItems);
   console.log('WishlistScreen render - user:', user?.id || user?._id, 'loading:', loading);
 
+  // Add more detailed debugging
+  console.log('WishlistScreen - Full wishlistItems:', JSON.stringify(wishlistItems, null, 2));
+  console.log('WishlistScreen - User object:', JSON.stringify(user, null, 2));
+  console.log('WishlistScreen - Loading state:', loading);
+  console.log('WishlistScreen - Is authenticated:', isAuthenticated);
+
   return (
     <View style={styles.container}>
       <CoolHeader
@@ -209,6 +215,10 @@ export default function WishlistScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
   scrollView: {
     flex: 1,
   },

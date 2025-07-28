@@ -26,6 +26,8 @@ import AboutScreen from './src/screens/AboutScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import WishlistScreen from './src/screens/WishlistScreen';
 import OrderDetailScreen from './src/screens/OrderDetailScreen';
+import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 
 // Import contexts
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
@@ -168,6 +170,16 @@ function MainAppNavigator() {
       <Stack.Screen 
         name="OrderDetail" 
         component={OrderDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="PrivacyPolicy" 
+        component={PrivacyPolicyScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="TermsOfService" 
+        component={TermsOfServiceScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen 
