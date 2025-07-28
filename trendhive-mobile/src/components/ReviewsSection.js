@@ -141,13 +141,6 @@ export default function ReviewsSection({ productId, productName }) {
 
 
   const renderReviewItem = (review) => {
-    console.log('ReviewSection - Rendering review:', {
-      reviewId: review._id,
-      reviewUserId: review.userId,
-      currentUserId: user?._id,
-      userName: review.userName,
-      isUserReview: user && review.userId === user._id
-    });
     // More robust user ID comparison
     const isUserReview = user && (
       review.userId === user._id || 
@@ -155,6 +148,20 @@ export default function ReviewsSection({ productId, productName }) {
       String(review.userId) === String(user._id) ||
       String(review.userId) === String(user.id)
     );
+    
+    console.log('ReviewSection - Rendering review:', {
+      reviewId: review._id,
+      reviewUserId: review.userId,
+      currentUserId: user?._id,
+      userName: review.userName,
+      isUserReview: isUserReview,
+      userComparison: {
+        directMatch: review.userId === user?._id,
+        stringMatch: String(review.userId) === String(user?._id),
+        userHasId: !!user?._id,
+        reviewHasUserId: !!review.userId
+      }
+    });
     
     return (
       <View key={review._id} style={[styles.reviewItem, { borderBottomColor: colors.border }]}>
@@ -177,47 +184,51 @@ export default function ReviewsSection({ productId, productName }) {
             <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>
               {new Date(review.createdAt).toLocaleDateString()}
             </Text>
-            {/* Temporarily show buttons for all reviews to test */}
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={[styles.actionButton, { borderColor: colors.border }]}
-                onPress={() => {
-                  Alert.alert('Test', `Edit button clicked for review: ${review._id}`);
-                  console.log('ReviewsSection - Test edit button clicked for review:', review);
-                  handleEditReview(review);
-                }}
-              >
-                <Ionicons name="create-outline" size={16} color={colors.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, { borderColor: colors.error }]}
-                onPress={() => {
-                  Alert.alert('Test', `Delete button clicked for review: ${review._id}`);
-                  console.log('ReviewsSection - Test delete button clicked for review:', review);
-                  handleDeleteReview(review);
-                }}
-              >
-                <Ionicons name="trash-outline" size={16} color={colors.error} />
-              </TouchableOpacity>
-            </View>
-            {/* Original conditional code (commented out for testing):
+            {/* Show edit/delete buttons only for user's own reviews */}
             {isUserReview && (
               <View style={styles.actionButtons}>
                 <TouchableOpacity
                   style={[styles.actionButton, { borderColor: colors.border }]}
-                  onPress={() => handleEditReview(review)}
+                  onPress={() => {
+                    console.log('ReviewsSection - Edit button clicked for review:', review._id);
+                    handleEditReview(review);
+                  }}
                 >
                   <Ionicons name="create-outline" size={16} color={colors.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.actionButton, { borderColor: colors.error }]}
-                  onPress={() => handleDeleteReview(review)}
+                  onPress={() => {
+                    console.log('ReviewsSection - Delete button clicked for review:', review._id);
+                    handleDeleteReview(review);
+                  }}
                 >
                   <Ionicons name="trash-outline" size={16} color={colors.error} />
                 </TouchableOpacity>
               </View>
             )}
-            */}
+            
+            {/* Debug: Show buttons for all reviews temporarily to test */}
+            {!isUserReview && (
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={[styles.actionButton, { borderColor: colors.border }]}
+                  onPress={() => {
+                    Alert.alert('Debug', `This is not your review. User ID: ${review.userId}, Your ID: ${user?._id}`);
+                  }}
+                >
+                  <Ionicons name="create-outline" size={16} color={colors.textTertiary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, { borderColor: colors.error }]}
+                  onPress={() => {
+                    Alert.alert('Debug', `This is not your review. User ID: ${review.userId}, Your ID: ${user?._id}`);
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={16} color={colors.textTertiary} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
         
