@@ -6,78 +6,105 @@ import {
   Modal,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Button, TextInput, Title } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { apiService } from '../services/apiService';
-import { useNotification } from '../contexts/NotificationContext';
 
-export default function ReviewModal({ visible, onClose, product, orderId }) {
+export default function ReviewModal({ visible, onClose, productId, productName, onReviewSubmitted }) {
+  const { colors } = useTheme();
+  const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
-  const { showSuccess, showError } = useNotification();
+  const [hoveredRating, setHoveredRating] = useState(0);
+
+  const handleStarPress = (starRating) => {
+    setRating(starRating);
+  };
+
+  const handleStarHover = (starRating) => {
+    setHoveredRating(starRating);
+  };
 
   const handleSubmitReview = async () => {
-    if (rating === 0) {
-      showError('Please select a rating');
+    if (!rating) {
+      Alert.alert('Error', 'Please select a rating');
       return;
     }
 
     if (!comment.trim()) {
-      showError('Please write a review comment');
+      Alert.alert('Error', 'Please write a review comment');
       return;
     }
+
+    if (!user) {
+      Alert.alert('Error', 'Please sign in to submit a review');
+      return;
+    }
+
+    console.log('ReviewModal - Submitting review with data:', {
+      productId,
+      rating,
+      comment: comment.trim(),
+      user: user ? 'User logged in' : 'No user'
+    });
 
     setLoading(true);
     try {
       const reviewData = {
-        productId: product._id,
-        rating: rating,
+        productId,
+        rating,
         comment: comment.trim(),
-        orderId: orderId
       };
 
+      console.log('ReviewModal - Calling apiService.submitReview with:', reviewData);
       const response = await apiService.submitReview(reviewData);
+      console.log('ReviewModal - API response:', response);
       
       if (response.success) {
-        showSuccess('Review submitted successfully!');
-        onClose();
-        // Reset form
+        Alert.alert('Success', 'Review submitted successfully!');
         setRating(0);
         setComment('');
+        onReviewSubmitted();
+        onClose();
       } else {
-        showError(response.error || 'Failed to submit review');
+        console.error('ReviewModal - API returned error:', response.error);
+        Alert.alert('Error', response.error || 'Failed to submit review');
       }
     } catch (error) {
-      console.error('Review submission error:', error);
-      showError('Failed to submit review. Please try again.');
+      console.error('ReviewModal - Error submitting review:', error);
+      console.error('ReviewModal - Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.status
+      });
+      Alert.alert('Error', `Failed to submit review: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    if (loading) return;
-    onClose();
-    // Reset form
-    setRating(0);
-    setComment('');
-  };
-
   const renderStars = () => {
     const stars = [];
+    const currentRating = hoveredRating || rating;
+    
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <TouchableOpacity
           key={i}
-          onPress={() => setRating(i)}
+          onPress={() => handleStarPress(i)}
+          onPressIn={() => handleStarHover(i)}
+          onPressOut={() => setHoveredRating(0)}
           style={styles.starButton}
         >
           <Ionicons
-            name={i <= rating ? "star" : "star-outline"}
+            name={i <= currentRating ? "star" : "star-outline"}
             size={32}
-            color={i <= rating ? "#FFD700" : "#D1D5DB"}
+            color={i <= currentRating ? "#FFD700" : "#D1D5DB"}
           />
         </TouchableOpacity>
       );
@@ -85,79 +112,96 @@ export default function ReviewModal({ visible, onClose, product, orderId }) {
     return stars;
   };
 
+  const getRatingText = () => {
+    if (rating === 0) return 'Select Rating';
+    if (rating === 1) return 'Poor';
+    if (rating === 2) return 'Fair';
+    if (rating === 3) return 'Good';
+    if (rating === 4) return 'Very Good';
+    if (rating === 5) return 'Excellent';
+    return '';
+  };
+
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent={true}
-      onRequestClose={handleClose}
+      onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <Title style={styles.title}>Write a Review</Title>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#6B7280" />
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View style={styles.modalHeader}>
+            <Title style={[styles.modalTitle, { color: colors.text }]}>Write a Review</Title>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.productInfo}>
-            <Text style={styles.productName}>{product?.name}</Text>
-            <Text style={styles.productPrice}>${product?.price?.toFixed(2)}</Text>
-          </View>
-
-          <View style={styles.ratingSection}>
-            <Text style={styles.ratingLabel}>Rate your experience:</Text>
-            <View style={styles.starsContainer}>
-              {renderStars()}
-            </View>
-            <Text style={styles.ratingText}>
-              {rating > 0 ? `${rating} star${rating > 1 ? 's' : ''}` : 'Select rating'}
+          <ScrollView style={styles.modalBody}>
+            <Text style={[styles.productName, { color: colors.textSecondary }]}>
+              {productName}
             </Text>
-          </View>
 
-          <View style={styles.commentSection}>
-            <Text style={styles.commentLabel}>Write your review:</Text>
-            <TextInput
-              mode="outlined"
-              value={comment}
-              onChangeText={setComment}
-              placeholder="Share your experience with this product..."
-              multiline
-              numberOfLines={4}
-              style={styles.commentInput}
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: '#d1d5db',
-                }
-              }}
-            />
-          </View>
+            <View style={styles.ratingSection}>
+              <Text style={[styles.ratingLabel, { color: colors.text }]}>Your Rating</Text>
+              <View style={styles.starsContainer}>
+                {renderStars()}
+              </View>
+              {rating > 0 && (
+                <Text style={[styles.ratingText, { color: colors.primary }]}>
+                  {getRatingText()}
+                </Text>
+              )}
+            </View>
 
-          <View style={styles.buttonContainer}>
+            <View style={styles.commentSection}>
+              <Text style={[styles.commentLabel, { color: colors.text }]}>Your Review</Text>
+              <TextInput
+                mode="outlined"
+                multiline
+                numberOfLines={6}
+                placeholder="Share your experience with this product..."
+                value={comment}
+                onChangeText={setComment}
+                style={styles.commentInput}
+                theme={{
+                  colors: {
+                    primary: colors.primary,
+                    text: colors.text,
+                    placeholder: colors.textSecondary,
+                    background: colors.surface,
+                    onSurface: colors.text,
+                    surface: colors.surface,
+                    outline: colors.border,
+                    onSurfaceVariant: colors.primary,
+                    primaryContainer: colors.primary,
+                    onPrimaryContainer: '#ffffff',
+                    secondary: colors.primary,
+                    secondaryContainer: colors.primary,
+                    onSecondaryContainer: '#ffffff',
+                  }
+                }}
+              />
+            </View>
+          </ScrollView>
+
+          <View style={styles.modalFooter}>
             <Button
               mode="outlined"
-              onPress={handleClose}
-              style={styles.cancelButton}
-              textColor="#6B7280"
-              disabled={loading}
+              onPress={onClose}
+              style={[styles.cancelButton, { borderColor: colors.border }]}
+              textColor={colors.text}
             >
               Cancel
             </Button>
             <Button
               mode="contained"
               onPress={handleSubmitReview}
-              style={styles.submitButton}
               loading={loading}
               disabled={loading || rating === 0 || !comment.trim()}
-              buttonColor="#10B981"
-              textColor="white"
+              style={styles.submitButton}
+              buttonColor={colors.primary}
             >
               Submit Review
             </Button>
@@ -174,54 +218,50 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    width: '90%',
+    width: '100%',
     maxWidth: 400,
     maxHeight: '80%',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  header: {
+  modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
-  title: {
+  modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
   },
   closeButton: {
     padding: 4,
   },
-  productInfo: {
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
+  modalBody: {
+    padding: 20,
   },
   productName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  productPrice: {
-    fontSize: 14,
-    color: '#10B981',
-    fontWeight: '600',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   ratingSection: {
-    marginBottom: 20,
     alignItems: 'center',
+    marginBottom: 24,
   },
   ratingLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 12,
   },
   starsContainer: {
@@ -230,32 +270,37 @@ const styles = StyleSheet.create({
   },
   starButton: {
     padding: 4,
+    marginHorizontal: 2,
   },
   ratingText: {
     fontSize: 14,
-    color: '#6B7280',
+    fontWeight: '600',
   },
   commentSection: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   commentLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   commentInput: {
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
   },
-  buttonContainer: {
+  modalFooter: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
     gap: 12,
   },
   cancelButton: {
     flex: 1,
-    borderColor: '#D1D5DB',
+    borderRadius: 8,
   },
   submitButton: {
-    flex: 1,
+    flex: 2,
+    borderRadius: 8,
   },
 }); 

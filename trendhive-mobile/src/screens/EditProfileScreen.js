@@ -11,10 +11,12 @@ import {
 import { TextInput, Button, Title, Card } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { apiService } from '../services/apiService';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 
 export default function EditProfileScreen({ navigation }) {
+  const { colors } = useTheme();
   const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -122,17 +124,35 @@ export default function EditProfileScreen({ navigation }) {
     }
   };
 
+  const getTextInputTheme = (hasError = false) => ({
+    colors: {
+      primary: colors.primary,
+      text: colors.text,
+      placeholder: colors.textSecondary,
+      background: colors.card,
+      onSurface: colors.text,
+      surface: colors.card,
+      outline: hasError ? colors.error : colors.border,
+      onSurfaceVariant: colors.primary,
+      primaryContainer: colors.primary,
+      onPrimaryContainer: '#ffffff',
+      secondary: colors.primary,
+      secondaryContainer: colors.primary,
+      onSecondaryContainer: '#ffffff',
+    }
+  });
+
   return (
     <SafeAreaWrapper>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView style={styles.scrollView}>
-        <Card style={styles.card}>
+        <Card style={[styles.card, { backgroundColor: colors.card }]}>
           <Card.Content>
-            <Title style={styles.title}>Edit Profile</Title>
-            <Text style={styles.subtitle}>
+            <Title style={[styles.title, { color: colors.text }]}>Edit Profile</Title>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Update your personal information
             </Text>
 
@@ -143,23 +163,7 @@ export default function EditProfileScreen({ navigation }) {
               mode="outlined"
               style={[styles.input, errors.firstName ? styles.inputError : null]}
               error={!!errors.firstName}
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: errors.firstName ? '#ef4444' : '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme(!!errors.firstName)}
             />
             {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
 
@@ -170,23 +174,7 @@ export default function EditProfileScreen({ navigation }) {
               mode="outlined"
               style={[styles.input, errors.lastName ? styles.inputError : null]}
               error={!!errors.lastName}
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: errors.lastName ? '#ef4444' : '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme(!!errors.lastName)}
             />
             {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
 
@@ -200,23 +188,7 @@ export default function EditProfileScreen({ navigation }) {
               autoCapitalize="none"
               autoCorrect={false}
               error={!!errors.email}
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: errors.email ? '#ef4444' : '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme(!!errors.email)}
             />
             {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
@@ -228,23 +200,7 @@ export default function EditProfileScreen({ navigation }) {
               style={[styles.input, errors.phone ? styles.inputError : null]}
               keyboardType="phone-pad"
               error={!!errors.phone}
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: errors.phone ? '#ef4444' : '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme(!!errors.phone)}
             />
             {errors.phone ? <Text style={styles.errorText}>{errors.phone}</Text> : null}
 
@@ -255,31 +211,16 @@ export default function EditProfileScreen({ navigation }) {
               mode="outlined"
               style={styles.input}
               placeholder="MM/DD/YYYY"
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme()}
             />
 
             <View style={styles.buttonContainer}>
               <Button
                 mode="outlined"
-                style={styles.cancelButton}
+                style={[styles.cancelButton, { borderColor: colors.border }]}
                 onPress={() => navigation.goBack()}
                 disabled={loading}
+                textColor={colors.text}
               >
                 Cancel
               </Button>
@@ -289,6 +230,7 @@ export default function EditProfileScreen({ navigation }) {
                 onPress={handleSave}
                 loading={loading}
                 disabled={loading}
+                buttonColor={colors.primary}
               >
                 Save Changes
               </Button>
@@ -304,14 +246,12 @@ export default function EditProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
   },
   card: {
     margin: 20,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -322,23 +262,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginBottom: 30,
   },
   input: {
     marginBottom: 15,
-    backgroundColor: 'white',
   },
   inputError: {
-    borderColor: '#ef4444',
+    // Handled dynamically in component
   },
   errorText: {
-    color: '#ef4444',
     fontSize: 12,
     marginTop: -10,
     marginBottom: 10,

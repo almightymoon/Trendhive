@@ -30,17 +30,27 @@ import ReorderScreen from './src/screens/ReorderScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 
+// Import new feature screens
+import ThemeSettingsScreen from './src/screens/ThemeSettingsScreen';
+import NotificationSettingsScreen from './src/screens/NotificationSettingsScreen';
+import AdvancedSearchScreen from './src/screens/AdvancedSearchScreen';
+import LoyaltyScreen from './src/screens/LoyaltyScreen';
+import FlashSalesScreen from './src/screens/FlashSalesScreen';
+
 // Import contexts
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { CartProvider } from './src/contexts/CartContext';
 import { WishlistProvider } from './src/contexts/WishlistContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Bottom Tab Navigator - Always accessible
-function TabNavigator() {
+// Themed Tab Navigator Component
+function ThemedMainTabs() {
+  const { colors } = useTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -55,12 +65,18 @@ function TabNavigator() {
             iconName = focused ? 'cart' : 'cart-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'FlashSales') {
+            iconName = focused ? 'flash' : 'flash-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#10B981',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+        },
         headerShown: false,
       })}
     >
@@ -68,6 +84,7 @@ function TabNavigator() {
       <Tab.Screen name="Products" component={ProductsScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="FlashSales" component={FlashSalesScreen} />
     </Tab.Navigator>
   );
 }
@@ -114,9 +131,9 @@ function MainAppNavigator() {
         },
       }}
     >
-      <Stack.Screen 
+            <Stack.Screen 
         name="MainTabs" 
-        component={TabNavigator} 
+        component={ThemedMainTabs}
         options={{ headerShown: false }}
       />
       <Stack.Screen 
@@ -189,6 +206,28 @@ function MainAppNavigator() {
         component={TermsOfServiceScreen}
         options={{ headerShown: false }}
       />
+      
+      {/* New Feature Screens */}
+      <Stack.Screen 
+        name="ThemeSettings" 
+        component={ThemeSettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="NotificationSettings" 
+        component={NotificationSettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="AdvancedSearch" 
+        component={AdvancedSearchScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Loyalty" 
+        component={LoyaltyScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen 
         name="SignIn" 
         component={SignInScreen}
@@ -221,20 +260,22 @@ function AppNavigator() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <PaperProvider>
-        <NotificationProvider>
-          <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <NavigationContainer>
-                  <StatusBar style="auto" />
-                  <AppNavigator />
-                </NavigationContainer>
-              </WishlistProvider>
-            </CartProvider>
-          </AuthProvider>
-        </NotificationProvider>
-      </PaperProvider>
+      <ThemeProvider>
+        <PaperProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <NavigationContainer>
+                    <StatusBar style="auto" />
+                    <AppNavigator />
+                  </NavigationContainer>
+                </WishlistProvider>
+              </CartProvider>
+            </AuthProvider>
+          </NotificationProvider>
+        </PaperProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

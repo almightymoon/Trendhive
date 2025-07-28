@@ -14,12 +14,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useTheme } from '../contexts/ThemeContext';
 import CoolHeader from '../components/CoolHeader';
 import ReviewsSection from '../components/ReviewsSection';
 
 const { width, height } = Dimensions.get('window');
 
 export default function ProductDetailScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { product } = route.params;
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -120,62 +122,80 @@ export default function ProductDetailScreen({ route, navigation }) {
   );
 
   const renderProductInfo = () => (
-    <View style={styles.productInfo}>
+    <View style={[styles.productInfo, { backgroundColor: colors.card }]}>
       <View style={styles.productHeader}>
-        <Text style={styles.productTitle}>{product.name}</Text>
-        <Text style={styles.productPrice}>${product.price?.toFixed(2) || '0.00'}</Text>
+        <Text style={[styles.productTitle, { color: colors.text }]}>{product.name}</Text>
+        <Text style={[styles.productPrice, { color: colors.primary }]}>${product.price?.toFixed(2) || '0.00'}</Text>
       </View>
 
       <View style={styles.productMeta}>
-        <View style={styles.categoryTag}>
-          <Text style={styles.categoryText}>{product.category}</Text>
+        <View style={[styles.categoryTag, { backgroundColor: colors.surfaceVariant }]}>
+          <Text style={[styles.categoryText, { color: colors.text }]}>{product.category}</Text>
         </View>
         <View style={styles.ratingContainer}>
           <Ionicons name="star" size={16} color="#fbbf24" />
-          <Text style={styles.ratingText}>4.5 (120 reviews)</Text>
+          <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
+            {product.averageRating ? product.averageRating.toFixed(1) : '4.5'} ({product.reviewCount || 120} reviews)
+          </Text>
         </View>
       </View>
 
-      <Text style={styles.productDescription}>
+      <Text style={[styles.productDescription, { color: colors.textSecondary }]}>
         {product.description || product.shortDescription}
       </Text>
 
       {product.brand && (
-        <View style={styles.brandContainer}>
-          <Text style={styles.brandLabel}>Brand:</Text>
-          <Text style={styles.brandValue}>{product.brand}</Text>
+        <View style={[styles.brandContainer, { borderTopColor: colors.border }]}>
+          <Text style={[styles.brandLabel, { color: colors.text }]}>Brand:</Text>
+          <Text style={[styles.brandValue, { color: colors.textSecondary }]}>{product.brand}</Text>
           </View>
         )}
     </View>
   );
 
   const renderQuantitySelector = () => (
-    <View style={styles.quantityContainer}>
-      <Text style={styles.quantityLabel}>Quantity</Text>
-      <View style={styles.quantityControls}>
-        <TouchableOpacity
-          style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
-          onPress={() => handleQuantityChange(quantity - 1)}
-          disabled={quantity <= 1}
-        >
-          <Ionicons
-            name="remove"
-            size={20}
-            color={quantity <= 1 ? '#d1d5db' : '#10B981'}
-          />
-        </TouchableOpacity>
-        <Text style={styles.quantityText}>{quantity}</Text>
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => handleQuantityChange(quantity + 1)}
-        >
-          <Ionicons name="add" size={20} color="#10B981" />
-        </TouchableOpacity>
-      </View>
+    <View style={[styles.quantityContainer, { backgroundColor: colors.card }]}>
+      <Text style={[styles.quantityLabel, { color: colors.text }]}>Quantity</Text>
+              <View style={styles.quantityControls}>
+          <TouchableOpacity
+            style={[
+              styles.quantityButton, 
+              { 
+                backgroundColor: colors.surfaceVariant,
+                borderColor: colors.border 
+              },
+              quantity <= 1 && { 
+                opacity: 0.5,
+                backgroundColor: colors.surface 
+              }
+            ]}
+            onPress={() => handleQuantityChange(quantity - 1)}
+            disabled={quantity <= 1}
+          >
+            <Ionicons
+              name="remove"
+              size={20}
+              color={quantity <= 1 ? colors.textTertiary : colors.primary}
+            />
+          </TouchableOpacity>
+          <Text style={[styles.quantityText, { color: colors.text }]}>{quantity}</Text>
+          <TouchableOpacity
+            style={[
+              styles.quantityButton,
+              { 
+                backgroundColor: colors.surfaceVariant,
+                borderColor: colors.border 
+              }
+            ]}
+            onPress={() => handleQuantityChange(quantity + 1)}
+          >
+            <Ionicons name="add" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
       {currentQuantity > 0 && (
-        <View style={styles.cartQuantityContainer}>
-          <Ionicons name="cart" size={16} color="#10B981" />
-        <Text style={styles.cartQuantity}>
+        <View style={[styles.cartQuantityContainer, { borderTopColor: colors.border }]}>
+          <Ionicons name="cart" size={16} color={colors.primary} />
+        <Text style={[styles.cartQuantity, { color: colors.textSecondary }]}>
           {currentQuantity} in cart
         </Text>
         </View>
@@ -201,30 +221,46 @@ export default function ProductDetailScreen({ route, navigation }) {
   const renderActionButtons = () => (
     <View style={styles.actionButtons}>
       <TouchableOpacity
-        style={[styles.wishlistButton, isInWishlist(product) && styles.wishlistButtonActive]}
+        style={[
+          styles.wishlistButton, 
+          { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          },
+          isInWishlist(product) && { backgroundColor: colors.primary }
+        ]}
         onPress={handleWishlistToggle}
       >
         <Ionicons 
           name={isInWishlist(product) ? "heart" : "heart-outline"} 
           size={20} 
-          color={isInWishlist(product) ? "white" : "#10B981"} 
+          color={isInWishlist(product) ? "white" : colors.primary} 
         />
-        <Text style={[styles.wishlistText, isInWishlist(product) && styles.wishlistTextActive]}>
+        <Text style={[
+          styles.wishlistText, 
+          { color: isInWishlist(product) ? "white" : colors.primary }
+        ]}>
           {isInWishlist(product) ? 'Wishlisted' : 'Wishlist'}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.addToCartButton}
+        style={[
+          styles.addToCartButton, 
+          { 
+            backgroundColor: colors.primary,
+            shadowColor: colors.primary
+          }
+        ]}
         onPress={handleAddToCart}
       >
         <Ionicons name="cart-outline" size={20} color="white" />
-        <Text style={styles.addToCartText}>Add to Cart</Text>
+        <Text style={[styles.addToCartText, { color: 'white' }]}>Add to Cart</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CoolHeader
         title="Product Details"
         onBack={() => navigation.goBack()}
@@ -238,7 +274,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           {renderQuantitySelector()}
           {renderActionButtons()}
         </View>
-        <ReviewsSection productId={productId} />
+        <ReviewsSection productId={productId} productName={product.name} />
       </ScrollView>
     </View>
   );
@@ -247,7 +283,6 @@ export default function ProductDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   imageContainer: {
     position: 'relative',
@@ -338,7 +373,6 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   productInfo: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     marginTop: -30, // INCREASED OVERLAP TO REMOVE WHITE SPACE
@@ -355,14 +389,12 @@ const styles = StyleSheet.create({
   productTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 8,
     lineHeight: 28,
   },
   productPrice: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#10B981',
   },
   productMeta: {
     flexDirection: 'row',
@@ -371,15 +403,12 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   categoryTag: {
-    backgroundColor: '#f0fdf4',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#dcfce7',
   },
   categoryText: {
-    color: '#10B981',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -389,14 +418,12 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     marginLeft: 5,
-    color: '#6b7280',
     fontSize: 14,
     fontWeight: '500',
   },
   productDescription: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#374151',
     marginBottom: 15,
   },
   brandContainer: {
@@ -405,21 +432,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
   },
   brandLabel: {
     fontSize: 14,
-    color: '#6b7280',
     fontWeight: '500',
     marginRight: 8,
   },
   brandValue: {
     fontSize: 14,
-    color: '#1f2937',
     fontWeight: '600',
   },
   quantityContainer: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -432,7 +455,6 @@ const styles = StyleSheet.create({
   quantityLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 15,
   },
   quantityControls: {
@@ -445,20 +467,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f3f4f6',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  quantityButtonDisabled: {
-    opacity: 0.5,
-    backgroundColor: '#f9fafb',
   },
   quantityText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginHorizontal: 20,
     minWidth: 30,
     textAlign: 'center',
@@ -474,7 +489,6 @@ const styles = StyleSheet.create({
   },
   cartQuantity: {
     fontSize: 14,
-    color: '#10B981',
     textAlign: 'center',
     fontWeight: '500',
     marginLeft: 5,
@@ -486,16 +500,13 @@ const styles = StyleSheet.create({
   wishlistButton: {
     flex: 1,
     borderWidth: 2,
-    borderColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
   },
   wishlistText: {
-    color: '#10B981',
     fontWeight: '600',
     marginLeft: 5,
     fontSize: 16,
@@ -508,20 +519,17 @@ const styles = StyleSheet.create({
   },
   addToCartButton: {
     flex: 2,
-    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   addToCartText: {
-    color: 'white',
     fontWeight: '600',
     marginLeft: 5,
     fontSize: 16,

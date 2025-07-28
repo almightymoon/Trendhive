@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { TextInput, Button, Title, Card } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function HelpSupportScreen({ navigation }) {
+  const { colors } = useTheme();
   const [expanded, setExpanded] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
@@ -140,44 +142,62 @@ We strive to provide accurate and up-to-date product information.`,
     );
   };
 
+  const getTextInputTheme = () => ({
+    colors: {
+      primary: colors.primary,
+      text: colors.text,
+      placeholder: colors.textSecondary,
+      background: colors.card,
+      onSurface: colors.text,
+      surface: colors.card,
+      outline: colors.border,
+      onSurfaceVariant: colors.primary,
+      primaryContainer: colors.primary,
+      onPrimaryContainer: '#ffffff',
+      secondary: colors.primary,
+      secondaryContainer: colors.primary,
+      onSecondaryContainer: '#ffffff',
+    }
+  });
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
-          <Title style={styles.title}>Help & Support</Title>
-          <Text style={styles.subtitle}>
+          <Title style={[styles.title, { color: colors.text }]}>Help & Support</Title>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Find answers to common questions or contact our support team
           </Text>
         </View>
 
         {/* Quick Contact Options */}
-        <Card style={styles.contactCard}>
+        <Card style={[styles.contactCard, { backgroundColor: colors.card }]}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>Quick Contact</Title>
+            <Title style={[styles.sectionTitle, { color: colors.text }]}>Quick Contact</Title>
             <View style={styles.contactOptions}>
               <TouchableOpacity style={styles.contactOption} onPress={handleCallSupport}>
-                <View style={styles.contactIcon}>
-                  <Ionicons name="call" size={24} color="#10B981" />
+                <View style={[styles.contactIcon, { backgroundColor: colors.surfaceVariant }]}>
+                  <Ionicons name="call" size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.contactText}>Call Support</Text>
+                <Text style={[styles.contactText, { color: colors.text }]}>Call Support</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.contactOption} onPress={handleLiveChat}>
-                <View style={styles.contactIcon}>
-                  <Ionicons name="chatbubbles" size={24} color="#10B981" />
+                <View style={[styles.contactIcon, { backgroundColor: colors.surfaceVariant }]}>
+                  <Ionicons name="chatbubbles" size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.contactText}>Live Chat</Text>
+                <Text style={[styles.contactText, { color: colors.text }]}>Live Chat</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.contactOption} 
                 onPress={() => setShowEmailForm(!showEmailForm)}
               >
-                <View style={styles.contactIcon}>
-                  <Ionicons name="mail" size={24} color="#10B981" />
+                <View style={[styles.contactIcon, { backgroundColor: colors.surfaceVariant }]}>
+                  <Ionicons name="mail" size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.contactText}>Email Support</Text>
+                <Text style={[styles.contactText, { color: colors.text }]}>Email Support</Text>
               </TouchableOpacity>
             </View>
           </Card.Content>
@@ -185,10 +205,10 @@ We strive to provide accurate and up-to-date product information.`,
 
         {/* Email Support Form */}
         {showEmailForm && (
-          <Card style={styles.emailCard}>
+          <Card style={[styles.emailCard, { backgroundColor: colors.card }]}>
             <Card.Content>
-              <Title style={styles.sectionTitle}>Email Support</Title>
-              <Text style={styles.emailDescription}>
+              <Title style={[styles.sectionTitle, { color: colors.text }]}>Email Support</Title>
+              <Text style={[styles.emailDescription, { color: colors.textSecondary }]}>
                 Send us a detailed message and we'll get back to you within 24 hours.
               </Text>
               
@@ -199,6 +219,7 @@ We strive to provide accurate and up-to-date product information.`,
                 mode="outlined"
                 style={styles.input}
                 placeholder="Brief description of your issue"
+                theme={getTextInputTheme()}
               />
 
               <TextInput
@@ -210,17 +231,19 @@ We strive to provide accurate and up-to-date product information.`,
                 multiline
                 numberOfLines={6}
                 placeholder="Please provide detailed information about your issue..."
+                theme={getTextInputTheme()}
               />
 
               <View style={styles.emailButtons}>
                 <Button
                   mode="outlined"
-                  style={styles.cancelButton}
+                  style={[styles.cancelButton, { borderColor: colors.border }]}
                   onPress={() => {
                     setShowEmailForm(false);
                     setEmailSubject('');
                     setEmailMessage('');
                   }}
+                  textColor={colors.text}
                 >
                   Cancel
                 </Button>
@@ -228,6 +251,7 @@ We strive to provide accurate and up-to-date product information.`,
                   mode="contained"
                   style={styles.sendButton}
                   onPress={handleEmailSupport}
+                  buttonColor={colors.primary}
                 >
                   Send Email
                 </Button>
@@ -237,30 +261,36 @@ We strive to provide accurate and up-to-date product information.`,
         )}
 
         {/* Help Articles */}
-        <Card style={styles.articlesCard}>
+        <Card style={[styles.articlesCard, { backgroundColor: colors.card }]}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>Frequently Asked Questions</Title>
-            <Text style={styles.articlesDescription}>
+            <Title style={[styles.sectionTitle, { color: colors.text }]}>Frequently Asked Questions</Title>
+            <Text style={[styles.articlesDescription, { color: colors.textSecondary }]}>
               Find answers to common questions below
             </Text>
             
             {helpArticles.map((article) => (
               <TouchableOpacity
                 key={article.id}
-                style={styles.accordionItem}
+                style={[styles.accordionItem, { 
+                  backgroundColor: colors.card,
+                  borderColor: colors.border 
+                }]}
                 onPress={() => setExpanded(expanded === article.id ? '' : article.id)}
               >
                 <View style={styles.accordionHeader}>
-                  <Text style={styles.accordionTitle}>{article.title}</Text>
+                  <Text style={[styles.accordionTitle, { color: colors.text }]}>{article.title}</Text>
                   <Ionicons
                     name={expanded === article.id ? 'chevron-up' : 'chevron-down'}
                     size={20}
-                    color="#6b7280"
+                    color={colors.textSecondary}
                   />
                 </View>
                 {expanded === article.id && (
-                  <View style={styles.accordionContent}>
-                    <Text style={styles.accordionText}>{article.content}</Text>
+                  <View style={[styles.accordionContent, { 
+                    backgroundColor: colors.surfaceVariant,
+                    borderTopColor: colors.border 
+                  }]}>
+                    <Text style={[styles.accordionText, { color: colors.textSecondary }]}>{article.content}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -269,22 +299,22 @@ We strive to provide accurate and up-to-date product information.`,
         </Card>
 
         {/* Support Hours */}
-        <Card style={styles.hoursCard}>
+        <Card style={[styles.hoursCard, { backgroundColor: colors.card }]}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>Support Hours</Title>
+            <Title style={[styles.sectionTitle, { color: colors.text }]}>Support Hours</Title>
             <View style={styles.hoursRow}>
-              <Ionicons name="time" size={20} color="#10B981" />
-              <Text style={styles.hoursText}>Monday - Friday: 9 AM - 6 PM EST</Text>
+              <Ionicons name="time" size={20} color={colors.primary} />
+              <Text style={[styles.hoursText, { color: colors.textSecondary }]}>Monday - Friday: 9 AM - 6 PM EST</Text>
             </View>
             <View style={styles.hoursRow}>
-              <Ionicons name="time" size={20} color="#10B981" />
-              <Text style={styles.hoursText}>Saturday: 10 AM - 4 PM EST</Text>
+              <Ionicons name="time" size={20} color={colors.primary} />
+              <Text style={[styles.hoursText, { color: colors.textSecondary }]}>Saturday: 10 AM - 4 PM EST</Text>
             </View>
             <View style={styles.hoursRow}>
-              <Ionicons name="time" size={20} color="#10B981" />
-              <Text style={styles.hoursText}>Sunday: Closed</Text>
+              <Ionicons name="time" size={20} color={colors.primary} />
+              <Text style={[styles.hoursText, { color: colors.textSecondary }]}>Sunday: Closed</Text>
             </View>
-            <Text style={styles.hoursNote}>
+            <Text style={[styles.hoursNote, { color: colors.textSecondary }]}>
               For urgent issues outside business hours, please email us and we'll respond as soon as possible.
             </Text>
           </Card.Content>
@@ -297,7 +327,6 @@ We strive to provide accurate and up-to-date product information.`,
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -309,16 +338,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
   },
   contactCard: {
     margin: 20,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -329,7 +355,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 15,
   },
   contactOptions: {
@@ -344,7 +369,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f0fdf4',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -352,13 +376,11 @@ const styles = StyleSheet.create({
   contactText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#374151',
     textAlign: 'center',
   },
   emailCard: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -368,12 +390,10 @@ const styles = StyleSheet.create({
   },
   emailDescription: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 20,
   },
   input: {
     marginBottom: 15,
-    backgroundColor: 'white',
   },
   emailButtons: {
     flexDirection: 'row',
@@ -383,17 +403,14 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     marginRight: 10,
-    borderColor: '#6b7280',
   },
   sendButton: {
     flex: 1,
     marginLeft: 10,
-    backgroundColor: '#10B981',
   },
   articlesCard: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -403,15 +420,12 @@ const styles = StyleSheet.create({
   },
   articlesDescription: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 20,
   },
   accordionItem: {
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 8,
-    backgroundColor: 'white',
   },
   accordionHeader: {
     flexDirection: 'row',
@@ -422,25 +436,20 @@ const styles = StyleSheet.create({
   accordionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     flex: 1,
   },
   accordionContent: {
     padding: 15,
     paddingTop: 0,
-    backgroundColor: '#f9fafb',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
   },
   accordionText: {
     fontSize: 14,
-    color: '#374151',
     lineHeight: 20,
   },
   hoursCard: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -455,12 +464,10 @@ const styles = StyleSheet.create({
   },
   hoursText: {
     fontSize: 14,
-    color: '#374151',
     marginLeft: 10,
   },
   hoursNote: {
     fontSize: 12,
-    color: '#6b7280',
     fontStyle: 'italic',
     marginTop: 10,
   },

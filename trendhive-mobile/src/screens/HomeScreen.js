@@ -15,10 +15,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import { apiService } from '../services/apiService';
 import { useCart } from '../contexts/CartContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }) {
+  const { colors } = useTheme();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,10 +41,17 @@ export default function HomeScreen({ navigation }) {
       console.log('Products received:', products);
       
       if (Array.isArray(products)) {
-        setFeaturedProducts(products.slice(0, 6)); // Show only 6 featured products
+        // Filter out any undefined or null products before setting state
+        const validProducts = products.filter(product => product && product._id);
+        setFeaturedProducts(validProducts.slice(0, 6)); // Show only 6 featured products
+      } else if (products && Array.isArray(products.data)) {
+        // Handle case where API returns { data: [...] }
+        const validProducts = products.data.filter(product => product && product._id);
+        setFeaturedProducts(validProducts.slice(0, 6));
       } else {
         console.error('Products is not an array:', products);
         setError('Invalid data format received');
+        setFeaturedProducts([]); // Set empty array as fallback
       }
     } catch (error) {
       console.error('Error loading featured products:', error);
@@ -67,38 +76,48 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate('ProductDetail', { product });
   };
 
-  const renderProductCard = (product) => (
-    <Card key={product._id} style={styles.productCard}>
-      <TouchableOpacity onPress={() => handleProductPress(product)}>
-        <Card.Cover
-          source={{ uri: product.mainImage || product.image }}
-          style={styles.productImage}
-        />
-      </TouchableOpacity>
-      <Card.Content style={styles.productContent}>
-        <Title style={styles.productTitle} numberOfLines={2}>
-          {product.name}
-        </Title>
-        <Paragraph style={styles.productPrice}>
-          ${product.price?.toFixed(2) || '0.00'}
-        </Paragraph>
-        <View style={styles.productActions}>
-          <Button
-            mode="contained"
-            onPress={() => handleAddToCart(product)}
-            style={styles.addToCartButton}
-            labelStyle={styles.buttonLabel}
-          >
-            Add to Cart
-          </Button>
-        </View>
-      </Card.Content>
-    </Card>
-  );
+  const renderProductCard = (product) => {
+    try {
+      if (!product || !product._id) return null;
+      
+      return (
+        <Card key={product._id} style={[styles.productCard, { backgroundColor: colors.card }]}>
+          <TouchableOpacity onPress={() => handleProductPress(product)}>
+            <Card.Cover
+              source={{ uri: product.mainImage || product.image || 'https://via.placeholder.com/300x200?text=No+Image' }}
+              style={styles.productImage}
+            />
+          </TouchableOpacity>
+          <Card.Content style={styles.productContent}>
+            <Title style={[styles.productTitle, { color: colors.text }]} numberOfLines={2}>
+              {product.name || 'Product Name'}
+            </Title>
+            <Paragraph style={[styles.productPrice, { color: colors.primary }]}>
+              ${(product.price || 0).toFixed(2)}
+            </Paragraph>
+            <View style={styles.productActions}>
+              <Button
+                mode="contained"
+                onPress={() => handleAddToCart(product)}
+                style={styles.addToCartButton}
+                labelStyle={styles.buttonLabel}
+                buttonColor={colors.primary}
+              >
+                Add to Cart
+              </Button>
+            </View>
+          </Card.Content>
+        </Card>
+      );
+    } catch (error) {
+      console.error('Error rendering product card:', error, product);
+      return null;
+    }
+  };
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -125,7 +144,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* Categories Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Categories</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
         <View style={styles.categoriesContainer}>
           {[
             { name: 'Electronics', icon: 'phone-portrait' },
@@ -135,13 +154,13 @@ export default function HomeScreen({ navigation }) {
           ].map((category, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.categoryCard}
-              onPress={() => navigation.navigate('Products', { category: category.name })}
+              style={[styles.categoryCard, { backgroundColor: colors.card }]}
+              onPress={() => navigation.navigate('MainTabs', { screen: 'Products', params: { category: category.name } })}
             >
               <View style={styles.categoryIcon}>
-                <Ionicons name={category.icon} size={30} color="#10B981" />
+                <Ionicons name={category.icon} size={30} color={colors.primary} />
               </View>
-              <Text style={styles.categoryName}>{category.name}</Text>
+              <Text style={[styles.categoryName, { color: colors.text }]}>{category.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -150,48 +169,49 @@ export default function HomeScreen({ navigation }) {
       {/* Featured Products Section */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Products</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Products')}>
-            <Text style={styles.seeAllText}>See All</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Products</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })}>
+            <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
           </TouchableOpacity>
         </View>
         
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading products...</Text>
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading products...</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Error: {error}</Text>
+            <Text style={[styles.errorText, { color: colors.error }]}>Error: {error}</Text>
             <Button
               mode="contained"
               onPress={loadFeaturedProducts}
               style={styles.retryButton}
+              buttonColor={colors.primary}
             >
               Retry
             </Button>
           </View>
         ) : featuredProducts.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No featured products available</Text>
-            <Text style={styles.emptySubtext}>Check back later for new products!</Text>
+            <Text style={[styles.emptyText, { color: colors.text }]}>No featured products available</Text>
+            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Check back later for new products!</Text>
           </View>
         ) : (
           <View style={styles.productsGrid}>
-            {featuredProducts.map(renderProductCard)}
+            {featuredProducts.filter(product => product).map(renderProductCard)}
           </View>
         )}
       </View>
 
       {/* About Section */}
-      <View style={styles.aboutSection}>
-        <Text style={styles.aboutTitle}>About TrendHive</Text>
-        <Text style={styles.aboutText}>
+      <View style={[styles.aboutSection, { backgroundColor: colors.card }]}>
+        <Text style={[styles.aboutTitle, { color: colors.text }]}>About TrendHive</Text>
+        <Text style={[styles.aboutText, { color: colors.textSecondary }]}>
           We bring you the latest trends in technology, fashion, and lifestyle products. 
           Quality and customer satisfaction are our top priorities.
         </Text>
         <TouchableOpacity
-          style={styles.aboutButton}
+          style={[styles.aboutButton, { backgroundColor: colors.primary }]}
           onPress={() => navigation.navigate('About')}
         >
           <Text style={styles.aboutButtonText}>Learn More</Text>
@@ -204,7 +224,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   heroSection: {
     padding: 20,
@@ -254,7 +273,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 15,
   },
   seeAllText: {
@@ -269,7 +287,6 @@ const styles = StyleSheet.create({
   categoryCard: {
     width: (width - 60) / 4,
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 15,
     borderRadius: 12,
     marginBottom: 10,
@@ -291,7 +308,6 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#374151',
     textAlign: 'center',
   },
   productsGrid: {
@@ -346,7 +362,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   loadingText: {
-    color: '#6b7280',
     fontSize: 16,
   },
   errorContainer: {
@@ -354,31 +369,26 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    color: '#ef4444',
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 15,
   },
   retryButton: {
-    backgroundColor: '#10B981',
   },
   emptyContainer: {
     alignItems: 'center',
     padding: 20,
   },
   emptyText: {
-    color: '#6b7280',
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 5,
   },
   emptySubtext: {
-    color: '#9ca3af',
     fontSize: 14,
     textAlign: 'center',
   },
   aboutSection: {
-    backgroundColor: 'white',
     padding: 20,
     margin: 20,
     borderRadius: 12,
@@ -391,19 +401,16 @@ const styles = StyleSheet.create({
   aboutTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 10,
     textAlign: 'center',
   },
   aboutText: {
     fontSize: 14,
-    color: '#6b7280',
     lineHeight: 22,
     textAlign: 'center',
     marginBottom: 15,
   },
   aboutButton: {
-    backgroundColor: '#10B981',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,

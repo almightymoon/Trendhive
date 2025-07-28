@@ -11,8 +11,10 @@ import { Title, Card, List, Divider } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function NotificationsScreen({ navigation }) {
+  const { colors } = useTheme();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState({
@@ -193,24 +195,24 @@ export default function NotificationsScreen({ navigation }) {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Title style={styles.title}>Notification Settings</Title>
-        <Text style={styles.subtitle}>
+        <Title style={[styles.title, { color: colors.text }]}>Notification Settings</Title>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Customize how and when you receive notifications
         </Text>
       </View>
 
       {/* Test Notification */}
-      <Card style={styles.testCard}>
+      <Card style={[styles.testCard, { backgroundColor: colors.card }]}>
         <Card.Content>
-          <Title style={styles.sectionTitle}>Test Your Settings</Title>
-          <Text style={styles.testDescription}>
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Test Your Settings</Title>
+          <Text style={[styles.testDescription, { color: colors.textSecondary }]}>
             Send a test notification to verify your settings are working correctly.
           </Text>
-          <View style={styles.testButton}>
-            <Ionicons name="notifications" size={20} color="#10B981" />
-            <Text style={styles.testButtonText} onPress={handleTestNotification}>
+          <View style={[styles.testButton, { backgroundColor: colors.surfaceVariant }]}>
+            <Ionicons name="notifications" size={20} color={colors.primary} />
+            <Text style={[styles.testButtonText, { color: colors.primary }]} onPress={handleTestNotification}>
               Send Test Notification
             </Text>
           </View>
@@ -219,13 +221,13 @@ export default function NotificationsScreen({ navigation }) {
 
       {/* Notification Categories */}
       {notificationCategories.map((category, categoryIndex) => (
-        <Card key={categoryIndex} style={styles.categoryCard}>
+        <Card key={categoryIndex} style={[styles.categoryCard, { backgroundColor: colors.card }]}>
           <Card.Content>
             <View style={styles.categoryHeader}>
-              <Ionicons name={category.icon} size={24} color="#10B981" />
+              <Ionicons name={category.icon} size={24} color={colors.primary} />
               <View style={styles.categoryInfo}>
-                <Title style={styles.categoryTitle}>{category.title}</Title>
-                <Text style={styles.categoryDescription}>{category.description}</Text>
+                <Title style={[styles.categoryTitle, { color: colors.text }]}>{category.title}</Title>
+                <Text style={[styles.categoryDescription, { color: colors.textSecondary }]}>{category.description}</Text>
               </View>
             </View>
 
@@ -234,12 +236,14 @@ export default function NotificationsScreen({ navigation }) {
                 <List.Item
                   title={setting.title}
                   description={setting.description}
+                  titleStyle={{ color: colors.text }}
+                  descriptionStyle={{ color: colors.textSecondary }}
                   left={() => (
-                    <View style={styles.settingIcon}>
+                    <View style={[styles.settingIcon, { backgroundColor: colors.surfaceVariant }]}>
                       <Ionicons 
                         name={notificationSettings[setting.key] ? "notifications" : "notifications-off"} 
                         size={20} 
-                        color={notificationSettings[setting.key] ? "#10B981" : "#9ca3af"} 
+                        color={notificationSettings[setting.key] ? colors.primary : colors.textTertiary} 
                       />
                     </View>
                   )}
@@ -247,14 +251,14 @@ export default function NotificationsScreen({ navigation }) {
                     <Switch
                       value={notificationSettings[setting.key]}
                       onValueChange={(value) => handleToggleSetting(setting.key, value)}
-                      trackColor={{ false: '#e5e7eb', true: '#10B981' }}
-                      thumbColor={notificationSettings[setting.key] ? '#ffffff' : '#f3f4f6'}
+                      trackColor={{ false: colors.border, true: colors.primary }}
+                      thumbColor={notificationSettings[setting.key] ? '#ffffff' : colors.surfaceVariant}
                     />
                   )}
                   style={styles.settingItem}
                 />
                 {settingIndex < category.settings.length - 1 && (
-                  <Divider style={styles.divider} />
+                  <Divider style={[styles.divider, { backgroundColor: colors.border }]} />
                 )}
               </View>
             ))}
@@ -263,34 +267,34 @@ export default function NotificationsScreen({ navigation }) {
       ))}
 
       {/* Notification Tips */}
-      <Card style={styles.tipsCard}>
+      <Card style={[styles.tipsCard, { backgroundColor: colors.card }]}>
         <Card.Content>
-          <Title style={styles.sectionTitle}>Notification Tips</Title>
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Notification Tips</Title>
           
           <View style={styles.tip}>
-            <Ionicons name="bulb" size={20} color="#10B981" />
-            <Text style={styles.tipText}>
+            <Ionicons name="bulb" size={20} color={colors.primary} />
+            <Text style={[styles.tipText, { color: colors.textSecondary }]}>
               Enable order updates to track your purchases in real-time
             </Text>
           </View>
           
           <View style={styles.tip}>
-            <Ionicons name="bulb" size={20} color="#10B981" />
-            <Text style={styles.tipText}>
+            <Ionicons name="bulb" size={20} color={colors.primary} />
+            <Text style={[styles.tipText, { color: colors.textSecondary }]}>
               Turn on price drops to never miss a great deal
             </Text>
           </View>
           
           <View style={styles.tip}>
-            <Ionicons name="bulb" size={20} color="#10B981" />
-            <Text style={styles.tipText}>
+            <Ionicons name="bulb" size={20} color={colors.primary} />
+            <Text style={[styles.tipText, { color: colors.textSecondary }]}>
               Keep security alerts enabled for account protection
             </Text>
           </View>
           
           <View style={styles.tip}>
-            <Ionicons name="bulb" size={20} color="#10B981" />
-            <Text style={styles.tipText}>
+            <Ionicons name="bulb" size={20} color={colors.primary} />
+            <Text style={[styles.tipText, { color: colors.textSecondary }]}>
               You can change these settings anytime
             </Text>
           </View>
@@ -299,7 +303,7 @@ export default function NotificationsScreen({ navigation }) {
 
       {/* Footer Note */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
+        <Text style={[styles.footerText, { color: colors.textSecondary }]}>
           Some notifications are required for account security and cannot be disabled.
         </Text>
       </View>
@@ -310,7 +314,6 @@ export default function NotificationsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   header: {
     padding: 20,
@@ -319,16 +322,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
   },
   testCard: {
     margin: 20,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -339,30 +339,25 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 10,
   },
   testDescription: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 15,
   },
   testButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0fdf4',
     padding: 12,
     borderRadius: 8,
   },
   testButtonText: {
-    color: '#10B981',
     fontWeight: '600',
     marginLeft: 8,
   },
   categoryCard: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -382,12 +377,10 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 4,
   },
   categoryDescription: {
     fontSize: 14,
-    color: '#6b7280',
   },
   settingItem: {
     paddingVertical: 8,
@@ -396,19 +389,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f9fafb',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
   },
   divider: {
-    backgroundColor: '#f3f4f6',
     marginLeft: 50,
   },
   tipsCard: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -423,7 +413,6 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 14,
-    color: '#6b7280',
     marginLeft: 10,
     flex: 1,
     lineHeight: 20,
@@ -434,7 +423,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: '#9ca3af',
     textAlign: 'center',
     fontStyle: 'italic',
   },

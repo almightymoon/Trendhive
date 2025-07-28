@@ -12,12 +12,17 @@ import { Card, Title, Paragraph, Chip } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import CoolHeader from '../components/CoolHeader';
+import ReviewPrompt from '../components/ReviewPrompt';
 
 export default function OrdersScreen({ navigation }) {
+  const { colors } = useTheme();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -135,12 +140,12 @@ export default function OrdersScreen({ navigation }) {
   };
 
   const renderOrderItem = (order) => (
-    <Card key={order._id} style={styles.orderCard}>
+    <Card key={order._id} style={[styles.orderCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.orderHeader}>
           <View>
-            <Title style={styles.orderNumber}>Order #{order.orderNumber || order.orderId || order._id}</Title>
-            <Text style={styles.orderDate}>
+            <Title style={[styles.orderNumber, { color: colors.text }]}>Order #{order.orderNumber || order.orderId || order._id}</Title>
+            <Text style={[styles.orderDate, { color: colors.textSecondary }]}>
               {new Date(order.createdAt).toLocaleDateString()}
             </Text>
           </View>
@@ -161,14 +166,14 @@ export default function OrdersScreen({ navigation }) {
         <View style={styles.orderItems}>
           {order.items?.slice(0, 2).map((item, index) => (
             <View key={index} style={styles.orderItem}>
-              <Text style={styles.itemName} numberOfLines={1}>
+              <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>
                 {item.name}
               </Text>
-              <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+              <Text style={[styles.itemQuantity, { color: colors.textSecondary }]}>x{item.quantity}</Text>
             </View>
           ))}
           {order.items?.length > 2 && (
-            <Text style={styles.moreItems}>
+            <Text style={[styles.moreItems, { color: colors.textSecondary }]}>
               +{order.items.length - 2} more items
             </Text>
           )}
@@ -176,22 +181,36 @@ export default function OrdersScreen({ navigation }) {
 
         <View style={styles.orderFooter}>
           <View style={styles.orderTotal}>
-            <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalAmount}>${order.total?.toFixed(2)}</Text>
+            <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total:</Text>
+            <Text style={[styles.totalAmount, { color: colors.primary }]}>${order.total?.toFixed(2)}</Text>
           </View>
           <View style={styles.orderActions}>
             <TouchableOpacity
               style={styles.viewDetailsButton}
               onPress={() => navigation.navigate('OrderDetail', { order })}
             >
-              <Text style={styles.viewDetailsText}>View Details</Text>
-              <Ionicons name="chevron-forward" size={16} color="#10B981" />
+              <Text style={[styles.viewDetailsText, { color: colors.primary }]}>View Details</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
+            {(order.status === 'completed' || order.status === 'delivered') && (
+              <TouchableOpacity
+                style={styles.reviewButton}
+                onPress={() => {
+                  const items = order.items || order.products || [];
+                  if (items.length > 0) {
+                    setSelectedOrder(order);
+                    setShowReviewPrompt(true);
+                  }
+                }}
+              >
+                <Ionicons name="star-outline" size={20} color={colors.primary} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => handleDeleteOrder(order)}
             >
-              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <Ionicons name="trash-outline" size={20} color={colors.error} />
             </TouchableOpacity>
           </View>
         </View>
@@ -201,14 +220,14 @@ export default function OrdersScreen({ navigation }) {
 
   const renderEmptyOrders = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="bag-outline" size={80} color="#d1d5db" />
-      <Title style={styles.emptyTitle}>No Orders Yet</Title>
-      <Text style={styles.emptyText}>
+      <Ionicons name="bag-outline" size={80} color={colors.textTertiary} />
+      <Title style={[styles.emptyTitle, { color: colors.text }]}>No Orders Yet</Title>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
         Start shopping to see your order history here
       </Text>
       <TouchableOpacity
-        style={styles.shopNowButton}
-        onPress={() => navigation.navigate('Products')}
+        style={[styles.shopNowButton, { backgroundColor: colors.primary }]}
+        onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })}
       >
         <Text style={styles.shopNowText}>Start Shopping</Text>
       </TouchableOpacity>
@@ -217,13 +236,13 @@ export default function OrdersScreen({ navigation }) {
 
   const renderNotAuthenticated = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="person-circle-outline" size={80} color="#d1d5db" />
-      <Title style={styles.emptyTitle}>Sign In Required</Title>
-      <Text style={styles.emptyText}>
+      <Ionicons name="person-circle-outline" size={80} color={colors.textTertiary} />
+      <Title style={[styles.emptyTitle, { color: colors.text }]}>Sign In Required</Title>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
         Please sign in to view your order history
       </Text>
       <TouchableOpacity
-        style={styles.shopNowButton}
+        style={[styles.shopNowButton, { backgroundColor: colors.primary }]}
         onPress={() => navigation.navigate('SignIn')}
       >
         <Text style={styles.shopNowText}>Sign In</Text>
@@ -233,7 +252,7 @@ export default function OrdersScreen({ navigation }) {
 
   if (!isAuthenticated) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <CoolHeader
           title="My Orders"
           subtitle="Sign in required"
@@ -247,7 +266,7 @@ export default function OrdersScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CoolHeader
         title="My Orders"
         subtitle={`${orders.length} order${orders.length !== 1 ? 's' : ''}`}
@@ -261,7 +280,7 @@ export default function OrdersScreen({ navigation }) {
       >
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading orders...</Text>
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading orders...</Text>
           </View>
         ) : orders.length === 0 ? (
           renderEmptyOrders()
@@ -271,6 +290,17 @@ export default function OrdersScreen({ navigation }) {
           </View>
         )}
       </ScrollView>
+
+      {/* Review Prompt */}
+      <ReviewPrompt
+        visible={showReviewPrompt}
+        onClose={() => {
+          setShowReviewPrompt(false);
+          setSelectedOrder(null);
+        }}
+        products={selectedOrder?.items || selectedOrder?.products || []}
+        orderId={selectedOrder?._id}
+      />
     </View>
   );
 }
@@ -278,7 +308,6 @@ export default function OrdersScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -294,7 +323,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6b7280',
   },
   emptyContainer: {
     flex: 1,
@@ -305,19 +333,16 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginTop: 20,
     marginBottom: 10,
   },
   emptyText: {
     fontSize: 16,
-    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 30,
   },
   shopNowButton: {
-    backgroundColor: '#10B981',
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 12,
@@ -430,5 +455,8 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginLeft: 15,
+  },
+  reviewButton: {
+    marginLeft: 10,
   },
 }); 

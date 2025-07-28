@@ -11,10 +11,14 @@ import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useNotification } from '../contexts/NotificationContext';
 import CoolHeader from '../components/CoolHeader';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CartScreen({ navigation }) {
+  const { colors } = useTheme();
+  const { showSuccess, showError } = useNotification();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
   const [selectedItems, setSelectedItems] = useState([]);
@@ -32,7 +36,10 @@ export default function CartScreen({ navigation }) {
         'Do you want to remove this item from your cart?',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove', onPress: () => removeFromCart(productId) },
+          { text: 'Remove', onPress: () => {
+            removeFromCart(productId);
+            showSuccess('Item removed from cart');
+          }},
         ]
       );
     } else {
@@ -61,19 +68,12 @@ export default function CartScreen({ navigation }) {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      Alert.alert(
-        'Sign In Required',
-        'Please sign in to proceed with checkout.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign In', onPress: () => navigation.navigate('SignIn') },
-        ]
-      );
+      showError('Please sign in to proceed with checkout');
       return;
     }
 
     if (selectedItems.length === 0) {
-      Alert.alert('No Items Selected', 'Please select at least one item to checkout.');
+      showError('Please select at least one item to checkout');
       return;
     }
 
@@ -88,7 +88,10 @@ export default function CartScreen({ navigation }) {
       'Are you sure you want to clear your cart?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Clear', onPress: clearCart, style: 'destructive' },
+        { text: 'Clear', onPress: () => {
+          clearCart();
+          showSuccess('Cart cleared successfully');
+        }, style: 'destructive' },
       ]
     );
   };
@@ -125,11 +128,11 @@ export default function CartScreen({ navigation }) {
   );
 
   const renderSelectionControls = () => (
-    <Card style={styles.selectionCard}>
+    <Card style={[styles.selectionCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.selectionHeader}>
-          <Text style={styles.selectionTitle}>Select Items</Text>
-          <Text style={styles.selectionCount}>
+          <Text style={[styles.selectionTitle, { color: colors.text }]}>Select Items</Text>
+          <Text style={[styles.selectionCount, { color: colors.textSecondary }]}>
             {getSelectedCount()} of {cartItems.length} selected
           </Text>
         </View>
@@ -139,7 +142,7 @@ export default function CartScreen({ navigation }) {
             mode="outlined"
             onPress={selectAllItems}
             style={styles.selectionButton}
-            textColor="#10B981"
+            textColor={colors.primary}
           >
             Select All
           </Button>
@@ -147,7 +150,7 @@ export default function CartScreen({ navigation }) {
             mode="outlined"
             onPress={deselectAllItems}
             style={styles.selectionButton}
-            textColor="#EF4444"
+            textColor={colors.error}
           >
             Clear All
           </Button>
@@ -161,7 +164,7 @@ export default function CartScreen({ navigation }) {
     const totalPrice = item.price * item.quantity;
 
     return (
-      <Card key={item._id} style={[styles.cartItem, isSelected && styles.selectedItemCard]}>
+      <Card key={item._id} style={[styles.cartItem, { backgroundColor: colors.card }, isSelected && styles.selectedItemCard]}>
         <Card.Content>
           <View style={styles.itemRow}>
             <TouchableOpacity
@@ -171,7 +174,7 @@ export default function CartScreen({ navigation }) {
               <Ionicons
                 name={isSelected ? "checkbox" : "square-outline"}
                 size={24}
-                color={isSelected ? "#10B981" : "#D1D5DB"}
+                color={isSelected ? colors.primary : colors.border}
               />
             </TouchableOpacity>
             
@@ -181,13 +184,13 @@ export default function CartScreen({ navigation }) {
             />
             
             <View style={styles.itemDetails}>
-              <Title style={styles.itemTitle} numberOfLines={2}>
+              <Title style={[styles.itemTitle, { color: colors.text }]} numberOfLines={2}>
                 {item.name}
               </Title>
-              <Text style={styles.itemPrice}>
+              <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>
                 ${item.price.toFixed(2)} each
               </Text>
-              <Text style={styles.itemTotal}>
+              <Text style={[styles.itemTotal, { color: colors.primary }]}>
                 Total: ${totalPrice.toFixed(2)}
               </Text>
             </View>
@@ -195,32 +198,35 @@ export default function CartScreen({ navigation }) {
           
           <View style={styles.itemActions}>
             <View style={styles.quantitySection}>
-              <Text style={styles.quantityLabel}>Quantity:</Text>
+              <Text style={[styles.quantityLabel, { color: colors.text }]}>Quantity:</Text>
               <View style={styles.quantityControls}>
                 <TouchableOpacity
                   style={[styles.quantityButton, item.quantity <= 1 && styles.quantityButtonDisabled]}
                   onPress={() => handleQuantityChange(item._id, item.quantity - 1)}
                   disabled={item.quantity <= 1}
                 >
-                  <Ionicons name="remove" size={20} color={item.quantity <= 1 ? "#9CA3AF" : "#10B981"} />
+                  <Ionicons name="remove" size={20} color={item.quantity <= 1 ? colors.textTertiary : colors.primary} />
                 </TouchableOpacity>
                 
-                <Text style={styles.quantityText}>{item.quantity}</Text>
+                <Text style={[styles.quantityText, { color: colors.text }]}>{item.quantity}</Text>
                 
                 <TouchableOpacity
                   style={styles.quantityButton}
                   onPress={() => handleQuantityChange(item._id, item.quantity + 1)}
                 >
-                  <Ionicons name="add" size={20} color="#10B981" />
+                  <Ionicons name="add" size={20} color={colors.primary} />
                 </TouchableOpacity>
               </View>
             </View>
             
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => removeFromCart(item._id)}
+              onPress={() => {
+                removeFromCart(item._id);
+                showSuccess('Item removed from cart');
+              }}
             >
-              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <Ionicons name="trash-outline" size={20} color={colors.error} />
             </TouchableOpacity>
           </View>
         </Card.Content>
@@ -230,15 +236,16 @@ export default function CartScreen({ navigation }) {
 
   const renderEmptyCart = () => (
     <View style={styles.emptyCart}>
-      <Ionicons name="cart-outline" size={80} color="#d1d5db" />
-      <Text style={styles.emptyCartTitle}>Your cart is empty</Text>
-      <Text style={styles.emptyCartText}>
+      <Ionicons name="cart-outline" size={80} color={colors.textTertiary} />
+      <Text style={[styles.emptyCartTitle, { color: colors.text }]}>Your cart is empty</Text>
+      <Text style={[styles.emptyCartText, { color: colors.textSecondary }]}>
         Add some products to get started with your shopping
       </Text>
       <Button
         mode="contained"
         style={styles.shopNowButton}
-        onPress={() => navigation.navigate('Products')}
+        buttonColor={colors.primary}
+        onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })}
       >
         Shop Now
       </Button>
@@ -246,41 +253,41 @@ export default function CartScreen({ navigation }) {
   );
 
   const renderCartSummary = () => (
-    <Card style={styles.summaryCard}>
+    <Card style={[styles.summaryCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.summaryHeader}>
-          <Text style={styles.summaryTitle}>Order Summary</Text>
+          <Text style={[styles.summaryTitle, { color: colors.text }]}>Order Summary</Text>
           <TouchableOpacity onPress={handleClearCart}>
-            <Text style={styles.clearCartText}>Clear Cart</Text>
+            <Text style={[styles.clearCartText, { color: colors.error }]}>Clear Cart</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.summaryItems}>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Selected Items:</Text>
-            <Text style={styles.summaryValue}>{getSelectedCount()}</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Selected Items:</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>{getSelectedCount()}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Subtotal</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>
               ${getSelectedTotal().toFixed(2)}
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Shipping</Text>
-            <Text style={styles.summaryValue}>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Shipping</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>
               {getSelectedTotal() > 50 ? 'Free' : '$5.99'}
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Tax</Text>
-            <Text style={styles.summaryValue}>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Tax</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>
               ${(getSelectedTotal() * 0.08).toFixed(2)}
             </Text>
           </View>
-          <View style={[styles.summaryRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>
+          <View style={[styles.summaryRow, styles.totalRow, { borderTopColor: colors.border }]}>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
+            <Text style={[styles.totalValue, { color: colors.primary }]}>
               ${(getSelectedTotal() + (getSelectedTotal() > 50 ? 0 : 5.99) + (getSelectedTotal() * 0.08)).toFixed(2)}
             </Text>
           </View>
@@ -290,7 +297,7 @@ export default function CartScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CoolHeader
         title="Shopping Cart"
         subtitle={`${cartItems.length} item${cartItems.length !== 1 ? 's' : ''}`}
@@ -306,7 +313,7 @@ export default function CartScreen({ navigation }) {
               {renderSelectionControls()}
               
               <View style={styles.cartItems}>
-                <Text style={styles.sectionTitle}>Cart Items</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Cart Items</Text>
                 {cartItems.map(renderCartItem)}
               </View>
               
@@ -317,13 +324,13 @@ export default function CartScreen({ navigation }) {
       </ScrollView>
       
       {cartItems.length > 0 && (
-        <View style={styles.bottomBar}>
+        <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <Button
             mode="contained"
             onPress={handleCheckout}
             style={styles.checkoutButton}
             disabled={getSelectedCount() === 0}
-            buttonColor="#10B981"
+            buttonColor={colors.primary}
             textColor="white"
           >
             <Ionicons name="card-outline" size={20} color="white" />
@@ -340,7 +347,6 @@ export default function CartScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -384,7 +390,6 @@ const styles = StyleSheet.create({
   },
   selectionCard: {
     marginBottom: 20,
-    backgroundColor: 'white',
     borderRadius: 12,
     elevation: 2,
     shadowColor: '#000',
@@ -401,11 +406,9 @@ const styles = StyleSheet.create({
   selectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   selectionCount: {
     fontSize: 14,
-    color: '#6b7280',
   },
   selectionButtons: {
     flexDirection: 'row',
@@ -413,7 +416,6 @@ const styles = StyleSheet.create({
   },
   selectionButton: {
     flex: 1,
-    borderColor: '#d1d5db',
   },
   cartItems: {
     marginBottom: 20,
@@ -545,7 +547,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   summaryCard: {
-    backgroundColor: 'white',
     borderRadius: 12,
     elevation: 2,
     shadowColor: '#000',
@@ -562,10 +563,8 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   clearCartText: {
-    color: '#ef4444',
     fontWeight: '600',
   },
   summaryItems: {
@@ -579,35 +578,28 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 16,
-    color: '#6b7280',
   },
   summaryValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
   },
   totalRow: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 15,
     marginTop: 10,
   },
   totalLabel: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   totalValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#10B981',
   },
   bottomBar: {
-    backgroundColor: 'white',
     padding: 20,
     paddingBottom: 30,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
   },
   checkoutButton: {
     borderRadius: 12,

@@ -13,8 +13,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/apiService';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function SecurityScreen({ navigation }) {
+  const { colors } = useTheme();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -129,17 +131,35 @@ export default function SecurityScreen({ navigation }) {
     }
   };
 
+  const getTextInputTheme = (hasError = false) => ({
+    colors: {
+      primary: colors.primary,
+      text: colors.text,
+      placeholder: colors.textSecondary,
+      background: colors.card,
+      onSurface: colors.text,
+      surface: colors.card,
+      outline: hasError ? colors.error : colors.border,
+      onSurfaceVariant: colors.primary,
+      primaryContainer: colors.primary,
+      onPrimaryContainer: '#ffffff',
+      secondary: colors.primary,
+      secondaryContainer: colors.primary,
+      onSecondaryContainer: '#ffffff',
+    }
+  });
+
   return (
     <SafeAreaWrapper>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView style={styles.scrollView}>
-        <Card style={styles.card}>
+        <Card style={[styles.card, { backgroundColor: colors.card }]}>
           <Card.Content>
-            <Title style={styles.title}>Change Password</Title>
-            <Text style={styles.subtitle}>
+            <Title style={[styles.title, { color: colors.text }]}>Change Password</Title>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Update your password to keep your account secure
             </Text>
 
@@ -159,23 +179,7 @@ export default function SecurityScreen({ navigation }) {
                   onPress={() => setShowOldPassword(!showOldPassword)}
                 />
               }
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: errors.oldPassword ? '#ef4444' : '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme(!!errors.oldPassword)}
             />
             {errors.oldPassword ? <Text style={styles.errorText}>{errors.oldPassword}</Text> : null}
 
@@ -195,23 +199,7 @@ export default function SecurityScreen({ navigation }) {
                   onPress={() => setShowNewPassword(!showNewPassword)}
                 />
               }
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: errors.newPassword ? '#ef4444' : '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme(!!errors.newPassword)}
             />
             {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
 
@@ -231,30 +219,14 @@ export default function SecurityScreen({ navigation }) {
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 />
               }
-              theme={{
-                colors: {
-                  primary: '#10B981',
-                  text: '#000000',
-                  placeholder: '#666666',
-                  background: 'white',
-                  onSurface: '#000000',
-                  surface: 'white',
-                  outline: errors.confirmPassword ? '#ef4444' : '#d1d5db',
-                  onSurfaceVariant: '#10B981',
-                  primaryContainer: '#10B981',
-                  onPrimaryContainer: '#ffffff',
-                  secondary: '#10B981',
-                  secondaryContainer: '#10B981',
-                  onSecondaryContainer: '#ffffff',
-                }
-              }}
+              theme={getTextInputTheme(!!errors.confirmPassword)}
             />
             {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
 
-            <View style={styles.passwordRequirements}>
-              <Text style={styles.requirementsTitle}>Password Requirements:</Text>
-              <Text style={styles.requirement}>• At least 6 characters long</Text>
-              <Text style={styles.requirement}>• Must be different from current password</Text>
+            <View style={[styles.passwordRequirements, { backgroundColor: colors.surfaceVariant }]}>
+              <Text style={[styles.requirementsTitle, { color: colors.text }]}>Password Requirements:</Text>
+              <Text style={[styles.requirement, { color: colors.textSecondary }]}>• At least 6 characters long</Text>
+              <Text style={[styles.requirement, { color: colors.textSecondary }]}>• Must be different from current password</Text>
             </View>
 
             <Button
@@ -263,30 +235,31 @@ export default function SecurityScreen({ navigation }) {
               onPress={handleChangePassword}
               loading={loading}
               disabled={loading}
+              buttonColor={colors.primary}
             >
               Change Password
             </Button>
           </Card.Content>
         </Card>
 
-        <Card style={styles.securityTipsCard}>
+        <Card style={[styles.securityTipsCard, { backgroundColor: colors.card }]}>
           <Card.Content>
-            <Title style={styles.tipsTitle}>Security Tips</Title>
+            <Title style={[styles.tipsTitle, { color: colors.text }]}>Security Tips</Title>
             <View style={styles.tip}>
-              <Ionicons name="shield-checkmark" size={20} color="#10B981" />
-              <Text style={styles.tipText}>Use a strong, unique password</Text>
+              <Ionicons name="shield-checkmark" size={20} color={colors.primary} />
+              <Text style={[styles.tipText, { color: colors.textSecondary }]}>Use a strong, unique password</Text>
             </View>
             <View style={styles.tip}>
-              <Ionicons name="shield-checkmark" size={20} color="#10B981" />
-              <Text style={styles.tipText}>Never share your password with anyone</Text>
+              <Ionicons name="shield-checkmark" size={20} color={colors.primary} />
+              <Text style={[styles.tipText, { color: colors.textSecondary }]}>Never share your password with anyone</Text>
             </View>
             <View style={styles.tip}>
-              <Ionicons name="shield-checkmark" size={20} color="#10B981" />
-              <Text style={styles.tipText}>Enable two-factor authentication if available</Text>
+              <Ionicons name="shield-checkmark" size={20} color={colors.primary} />
+              <Text style={[styles.tipText, { color: colors.textSecondary }]}>Enable two-factor authentication if available</Text>
             </View>
             <View style={styles.tip}>
-              <Ionicons name="shield-checkmark" size={20} color="#10B981" />
-              <Text style={styles.tipText}>Log out from shared devices</Text>
+              <Ionicons name="shield-checkmark" size={20} color={colors.primary} />
+              <Text style={[styles.tipText, { color: colors.textSecondary }]}>Log out from shared devices</Text>
             </View>
           </Card.Content>
         </Card>
@@ -299,14 +272,12 @@ export default function SecurityScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
   },
   card: {
     margin: 20,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -317,30 +288,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
     marginBottom: 30,
   },
   input: {
     marginBottom: 15,
-    backgroundColor: 'white',
   },
   inputError: {
-    borderColor: '#ef4444',
+    // Handled dynamically
   },
   errorText: {
-    color: '#ef4444',
     fontSize: 12,
     marginTop: -10,
     marginBottom: 10,
     marginLeft: 4,
   },
   passwordRequirements: {
-    backgroundColor: '#f0fdf4',
     padding: 15,
     borderRadius: 8,
     marginBottom: 20,
@@ -348,23 +314,19 @@ const styles = StyleSheet.create({
   requirementsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 8,
   },
   requirement: {
     fontSize: 12,
-    color: '#6b7280',
     marginBottom: 4,
   },
   changeButton: {
-    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 8,
   },
   securityTipsCard: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -375,7 +337,6 @@ const styles = StyleSheet.create({
   tipsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 15,
   },
   tip: {
@@ -385,7 +346,6 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 14,
-    color: '#6b7280',
     marginLeft: 10,
     flex: 1,
   },

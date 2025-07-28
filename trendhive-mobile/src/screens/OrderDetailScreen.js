@@ -12,10 +12,12 @@ import { Card, Title, Paragraph, Chip, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useTheme } from '../contexts/ThemeContext';
 import CoolHeader from '../components/CoolHeader';
 import ReviewModal from '../components/ReviewModal';
 
 export default function OrderDetailScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { order } = route.params;
   const [loading, setLoading] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -134,14 +136,14 @@ export default function OrderDetailScreen({ route, navigation }) {
   };
 
   const renderOrderHeader = () => (
-    <Card style={styles.headerCard}>
+    <Card style={[styles.headerCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.orderHeader}>
           <View>
-            <Title style={styles.orderNumber}>
+            <Title style={[styles.orderNumber, { color: colors.text }]}>
               Order #{order.orderNumber || order.orderId || order._id}
             </Title>
-            <Text style={styles.orderDate}>
+            <Text style={[styles.orderDate, { color: colors.textSecondary }]}>
               {new Date(order.createdAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -165,7 +167,7 @@ export default function OrderDetailScreen({ route, navigation }) {
           </Chip>
         </View>
         
-        <Text style={styles.statusDescription}>
+        <Text style={[styles.statusDescription, { color: colors.textSecondary }]}>
           {getStatusDescription(order.status)}
         </Text>
       </Card.Content>
@@ -181,25 +183,25 @@ export default function OrderDetailScreen({ route, navigation }) {
     const isCompleted = order.status === 'completed' || order.status === 'delivered';
     
     if (items.length === 0) {
-      return (
-        <Card style={styles.sectionCard}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Order Items</Title>
-            <Text style={styles.noItemsText}>
-              No items found in this order. This might be due to a data issue during order creation.
-            </Text>
-            <Text style={styles.noItemsText}>
-              Order Total: ${(order.total || order.amount || order.price || 0).toFixed(2)}
-            </Text>
-          </Card.Content>
-        </Card>
-      );
+          return (
+      <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+        <Card.Content>
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Order Items</Title>
+          <Text style={[styles.noItemsText, { color: colors.textSecondary }]}>
+            No items found in this order. This might be due to a data issue during order creation.
+          </Text>
+          <Text style={[styles.noItemsText, { color: colors.textSecondary }]}>
+            Order Total: ${(order.total || order.amount || order.price || 0).toFixed(2)}
+          </Text>
+        </Card.Content>
+      </Card>
+    );
     }
 
     return (
-      <Card style={styles.sectionCard}>
+      <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
         <Card.Content>
-          <Title style={styles.sectionTitle}>Order Items</Title>
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Order Items</Title>
           {items.map((item, index) => {
             console.log('Rendering item:', item);
             return (
@@ -210,13 +212,13 @@ export default function OrderDetailScreen({ route, navigation }) {
                   resizeMode="cover"
                 />
                 <View style={styles.itemDetails}>
-                  <Text style={styles.itemName} numberOfLines={2}>
+                  <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={2}>
                     {item.name || item.title}
                   </Text>
-                  <Text style={styles.itemPrice}>
+                  <Text style={[styles.itemPrice, { color: colors.primary }]}>
                     ${(item.price || 0).toFixed(2)}
                   </Text>
-                  <Text style={styles.itemQuantity}>
+                  <Text style={[styles.itemQuantity, { color: colors.textSecondary }]}>
                     Quantity: {item.quantity || 1}
                   </Text>
                   {isCompleted && (
@@ -230,7 +232,7 @@ export default function OrderDetailScreen({ route, navigation }) {
                   )}
                 </View>
                 <View style={styles.itemTotal}>
-                  <Text style={styles.itemTotalText}>
+                  <Text style={[styles.itemTotalText, { color: colors.text }]}>
                     ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
                   </Text>
                 </View>
@@ -256,54 +258,54 @@ export default function OrderDetailScreen({ route, navigation }) {
                            shippingData.phone || shippingData.city;
     
     if (!hasShippingData) {
-      return (
-        <Card style={styles.sectionCard}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Shipping Information</Title>
-            <Text style={styles.noItemsText}>
-              No shipping information available for this order.
-            </Text>
-            <Text style={styles.noItemsText}>
-              Order was created without shipping details.
-            </Text>
-          </Card.Content>
-        </Card>
-      );
+          return (
+      <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+        <Card.Content>
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Shipping Information</Title>
+          <Text style={[styles.noItemsText, { color: colors.textSecondary }]}>
+            No shipping information available for this order.
+          </Text>
+          <Text style={[styles.noItemsText, { color: colors.textSecondary }]}>
+            Order was created without shipping details.
+          </Text>
+        </Card.Content>
+      </Card>
+    );
     }
     
     return (
-      <Card style={styles.sectionCard}>
+      <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
         <Card.Content>
-          <Title style={styles.sectionTitle}>Shipping Information</Title>
-          <View style={styles.shippingInfo}>
-            <View style={styles.infoRow}>
-              <Ionicons name="person-outline" size={20} color="#6b7280" />
-              <Text style={styles.infoText}>
-                {shippingData.fullName || shippingData.name || 'N/A'}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="mail-outline" size={20} color="#6b7280" />
-              <Text style={styles.infoText}>
-                {shippingData.email || 'N/A'}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="call-outline" size={20} color="#6b7280" />
-              <Text style={styles.infoText}>
-                {shippingData.phone || 'N/A'}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={20} color="#6b7280" />
-              <Text style={styles.infoText}>
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Shipping Information</Title>
+                      <View style={styles.shippingInfo}>
+              <View style={styles.infoRow}>
+                <Ionicons name="person-outline" size={20} color={colors.textSecondary} />
+                <Text style={[styles.infoText, { color: colors.text }]}>
+                  {shippingData.fullName || shippingData.name || 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Ionicons name="mail-outline" size={20} color={colors.textSecondary} />
+                <Text style={[styles.infoText, { color: colors.text }]}>
+                  {shippingData.email || 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Ionicons name="call-outline" size={20} color={colors.textSecondary} />
+                <Text style={[styles.infoText, { color: colors.text }]}>
+                  {shippingData.phone || 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Ionicons name="location-outline" size={20} color={colors.textSecondary} />
+                <Text style={[styles.infoText, { color: colors.text }]}>
                 {shippingData.address || 'N/A'}
               </Text>
             </View>
             {(shippingData.city || shippingData.state || shippingData.zipCode) && (
               <View style={styles.infoRow}>
-                <Ionicons name="business-outline" size={20} color="#6b7280" />
-                <Text style={styles.infoText}>
+                <Ionicons name="business-outline" size={20} color={colors.textSecondary} />
+                <Text style={[styles.infoText, { color: colors.text }]}>
                   {shippingData.city && shippingData.state && shippingData.zipCode
                     ? `${shippingData.city}, ${shippingData.state} ${shippingData.zipCode}`
                     : [shippingData.city, shippingData.state, shippingData.zipCode].filter(Boolean).join(', ') || 'N/A'
@@ -312,8 +314,8 @@ export default function OrderDetailScreen({ route, navigation }) {
               </View>
             )}
             <View style={styles.infoRow}>
-              <Ionicons name="flag-outline" size={20} color="#6b7280" />
-              <Text style={styles.infoText}>
+              <Ionicons name="flag-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.infoText, { color: colors.text }]}>
                 {shippingData.country || 'N/A'}
               </Text>
             </View>
@@ -324,23 +326,23 @@ export default function OrderDetailScreen({ route, navigation }) {
   };
 
   const renderPaymentInfo = () => (
-    <Card style={styles.sectionCard}>
+    <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
       <Card.Content>
-        <Title style={styles.sectionTitle}>Payment Information</Title>
-        <View style={styles.paymentInfo}>
-          <View style={styles.infoRow}>
-            <Ionicons name="card-outline" size={20} color="#6b7280" />
-            <Text style={styles.infoText}>
-              Payment Method: {order.paymentMethod || 'N/A'}
-            </Text>
+                  <Title style={[styles.sectionTitle, { color: colors.text }]}>Payment Information</Title>
+          <View style={styles.paymentInfo}>
+            <View style={styles.infoRow}>
+              <Ionicons name="card-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.infoText, { color: colors.text }]}>
+                Payment Method: {order.paymentMethod || 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Ionicons name="checkmark-circle-outline" size={20} color={colors.primary} />
+              <Text style={[styles.infoText, { color: colors.text }]}>
+                Payment Status: Paid
+              </Text>
+            </View>
           </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
-            <Text style={styles.infoText}>
-              Payment Status: Paid
-            </Text>
-          </View>
-        </View>
       </Card.Content>
     </Card>
   );
@@ -349,37 +351,37 @@ export default function OrderDetailScreen({ route, navigation }) {
     const orderTotal = order.total || order.amount || order.price || 0;
     
     return (
-      <Card style={styles.sectionCard}>
+      <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
         <Card.Content>
-          <Title style={styles.sectionTitle}>Order Summary</Title>
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Order Summary</Title>
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Order Number:</Text>
-              <Text style={styles.summaryValue}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Order Number:</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>
                 {order.orderNumber || order.orderId || order._id}
               </Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Date:</Text>
-              <Text style={styles.summaryValue}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Date:</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>
                 {new Date(order.date || order.createdAt).toLocaleDateString()}
               </Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Status:</Text>
-              <Text style={[styles.summaryValue, styles.statusText]}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Status:</Text>
+              <Text style={[styles.summaryValue, { color: colors.primary }]}>
                 {order.status || 'Pending'}
               </Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Payment Method:</Text>
-              <Text style={styles.summaryValue}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Payment Method:</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>
                 {order.paymentMethod || 'Unknown'}
               </Text>
             </View>
             <View style={[styles.summaryRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalAmount}>${orderTotal.toFixed(2)}</Text>
+              <Text style={[styles.totalLabel, { color: colors.text }]}>Total:</Text>
+              <Text style={[styles.totalAmount, { color: colors.primary }]}>${orderTotal.toFixed(2)}</Text>
             </View>
           </View>
         </Card.Content>
@@ -394,7 +396,7 @@ export default function OrderDetailScreen({ route, navigation }) {
         style={styles.actionButton}
         onPress={handleTrackOrder}
         icon="map-outline"
-        textColor="#000000"
+        textColor={colors.text}
       >
         Track Order
       </Button>
@@ -403,7 +405,7 @@ export default function OrderDetailScreen({ route, navigation }) {
         style={styles.actionButton}
         onPress={handleContactSupport}
         icon="help-circle-outline"
-        textColor="#000000"
+        textColor={colors.text}
       >
         Contact Support
       </Button>
@@ -412,7 +414,7 @@ export default function OrderDetailScreen({ route, navigation }) {
         style={[styles.actionButton, styles.reorderButton]}
         onPress={handleReorder}
         icon="refresh"
-        buttonColor="#10B981"
+        buttonColor={colors.primary}
         textColor="white"
       >
         Reorder
@@ -421,13 +423,13 @@ export default function OrderDetailScreen({ route, navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CoolHeader
         title="Order Details"
         subtitle={`Order #${order.orderNumber || order.orderId || order._id}`}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: colors.background }]}>
         {renderOrderHeader()}
         {renderOrderItems()}
         {renderShippingInfo()}
@@ -439,8 +441,9 @@ export default function OrderDetailScreen({ route, navigation }) {
       <ReviewModal
         visible={showReviewModal}
         onClose={() => setShowReviewModal(false)}
-        product={selectedProduct}
-        orderId={order._id}
+        productId={selectedProduct?._id || selectedProduct?.id}
+        productName={selectedProduct?.name || selectedProduct?.title}
+        onReviewSubmitted={handleReviewSubmitted}
       />
     </View>
   );
@@ -449,7 +452,6 @@ export default function OrderDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -457,7 +459,6 @@ const styles = StyleSheet.create({
   headerCard: {
     margin: 20,
     marginBottom: 10,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -474,12 +475,10 @@ const styles = StyleSheet.create({
   orderNumber: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 5,
   },
   orderDate: {
     fontSize: 14,
-    color: '#6b7280',
   },
   statusChip: {
     borderRadius: 20,
@@ -490,13 +489,11 @@ const styles = StyleSheet.create({
   },
   statusDescription: {
     fontSize: 14,
-    color: '#6b7280',
     lineHeight: 20,
   },
   sectionCard: {
     margin: 20,
     marginTop: 10,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -507,7 +504,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 15,
   },
   orderItem: {
@@ -515,7 +511,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   itemImage: {
     width: 60,
@@ -529,18 +524,15 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 4,
   },
   itemPrice: {
     fontSize: 14,
-    color: '#10B981',
     fontWeight: '600',
     marginBottom: 2,
   },
   itemQuantity: {
     fontSize: 12,
-    color: '#6b7280',
     marginBottom: 4,
   },
   reviewButton: {
@@ -550,7 +542,6 @@ const styles = StyleSheet.create({
   },
   reviewButtonText: {
     fontSize: 12,
-    color: '#10B981',
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -560,7 +551,6 @@ const styles = StyleSheet.create({
   itemTotalText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   shippingInfo: {
     gap: 10,
@@ -571,7 +561,6 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: '#374151',
     marginLeft: 10,
     flex: 1,
   },
@@ -588,28 +577,23 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#6b7280',
   },
   summaryValue: {
     fontSize: 14,
-    color: '#374151',
     fontWeight: '500',
   },
   totalRow: {
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
     paddingTop: 10,
     marginTop: 5,
   },
   totalLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   totalAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#10B981',
   },
   actionButtons: {
     margin: 20,
@@ -626,7 +610,6 @@ const styles = StyleSheet.create({
   },
   noItemsText: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     paddingVertical: 10,
   },

@@ -17,11 +17,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/apiService';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useTheme } from '../contexts/ThemeContext';
 import CoolHeader from '../components/CoolHeader';
 
 const { width, height } = Dimensions.get('window');
 
 export default function ProductsScreen({ navigation, route }) {
+  const { colors } = useTheme();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +151,7 @@ export default function ProductsScreen({ navigation, route }) {
     
     return (
       <TouchableOpacity 
-        style={styles.productCard}
+        style={[styles.productCard, { backgroundColor: colors.card }]}
         onPress={() => handleProductPress(item)}
         activeOpacity={0.8}
       >
@@ -196,21 +198,21 @@ export default function ProductsScreen({ navigation, route }) {
           </View>
         </View>
               <View style={styles.productContent}>
-          <Text style={styles.productTitle} numberOfLines={2}>
+          <Text style={[styles.productTitle, { color: colors.text }]} numberOfLines={2}>
           {item.name}
           </Text>
-          <Text style={styles.productDescription} numberOfLines={2}>
+          <Text style={[styles.productDescription, { color: colors.textSecondary }]} numberOfLines={2}>
           {item.shortDescription || item.description}
           </Text>
         <View style={styles.productMeta}>
-            <View style={styles.categoryTag}>
-              <Text style={styles.categoryText}>{item.category}</Text>
+            <View style={[styles.categoryTag, { backgroundColor: colors.surfaceVariant }]}>
+              <Text style={[styles.categoryText, { color: colors.text }]}>{item.category}</Text>
             </View>
-          <Text style={styles.productPrice}>${item.price?.toFixed(2) || '0.00'}</Text>
+          <Text style={[styles.productPrice, { color: colors.primary }]}>${item.price?.toFixed(2) || '0.00'}</Text>
         </View>
         <View style={styles.productActions}>
             <TouchableOpacity
-              style={styles.addToCartButton}
+              style={[styles.addToCartButton, { backgroundColor: colors.primary }]}
             onPress={() => handleAddToCart(item)}
             >
               <Ionicons name="cart" size={16} color="white" />
@@ -223,27 +225,27 @@ export default function ProductsScreen({ navigation, route }) {
   };
 
   const renderHeader = () => (
-    <View style={styles.header}>
+    <View style={[styles.header, { backgroundColor: colors.card }]}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#6b7280" style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.surfaceVariant }]}>
+        <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search products..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.textTertiary}
         />
         {searchQuery ? (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Ionicons name="close-circle" size={20} color="#6b7280" />
+            <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         ) : null}
       </View>
 
       {/* Categories */}
       <View style={styles.categoriesContainer}>
-        <Text style={styles.categoriesTitle}>Categories</Text>
+        <Text style={[styles.categoriesTitle, { color: colors.text }]}>Categories</Text>
         <FlatList
           data={categories}
           horizontal
@@ -252,19 +254,20 @@ export default function ProductsScreen({ navigation, route }) {
             <TouchableOpacity
               style={[
                 styles.categoryChip,
-                selectedCategory === item.name && styles.selectedCategoryChip,
+                { backgroundColor: colors.surfaceVariant },
+                selectedCategory === item.name && { backgroundColor: colors.primary },
               ]}
               onPress={() => setSelectedCategory(selectedCategory === item.name ? '' : item.name)}
             >
               <Ionicons 
                 name={item.icon} 
                 size={16} 
-                color={selectedCategory === item.name ? "white" : "#10B981"} 
+                color={selectedCategory === item.name ? "white" : colors.primary} 
               />
               <Text
                 style={[
                   styles.categoryChipText,
-                  selectedCategory === item.name && styles.selectedCategoryChipText,
+                  { color: selectedCategory === item.name ? "white" : colors.text },
                 ]}
               >
                 {item.name}
@@ -278,26 +281,27 @@ export default function ProductsScreen({ navigation, route }) {
 
       {/* Sort Options */}
       <View style={styles.sortContainer}>
-        <Text style={styles.sortLabel}>Sort by:</Text>
+        <Text style={[styles.sortLabel, { color: colors.text }]}>Sort by:</Text>
         <View style={styles.sortButtons}>
           {sortOptions.map((option) => (
             <TouchableOpacity
               key={option.key}
               style={[
                 styles.sortButton,
-                sortBy === option.key && styles.selectedSortButton,
+                { backgroundColor: colors.surfaceVariant },
+                sortBy === option.key && { backgroundColor: colors.primary },
               ]}
               onPress={() => setSortBy(option.key)}
             >
               <Ionicons 
                 name={option.icon} 
                 size={14} 
-                color={sortBy === option.key ? "white" : "#10B981"} 
+                color={sortBy === option.key ? "white" : colors.primary} 
               />
               <Text
                 style={[
                   styles.sortButtonText,
-                  sortBy === option.key && styles.selectedSortButtonText,
+                  { color: sortBy === option.key ? "white" : colors.text },
                 ]}
               >
                 {option.label}
@@ -309,7 +313,7 @@ export default function ProductsScreen({ navigation, route }) {
 
       {/* Results Count */}
       <View style={styles.resultsContainer}>
-      <Text style={styles.resultsCount}>
+      <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
         {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
       </Text>
       </View>
@@ -318,20 +322,21 @@ export default function ProductsScreen({ navigation, route }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading products...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading products...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error: {error}</Text>
+      <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.error }]}>Error: {error}</Text>
         <Button
           mode="contained"
           onPress={loadProducts}
           style={styles.retryButton}
+          buttonColor={colors.primary}
         >
           Retry
         </Button>
@@ -340,7 +345,7 @@ export default function ProductsScreen({ navigation, route }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CoolHeader
         title="Products"
         showBack={false}
@@ -358,8 +363,8 @@ export default function ProductsScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No products found</Text>
-            <Text style={styles.emptySubtext}>Try adjusting your search or filters</Text>
+            <Text style={[styles.emptyText, { color: colors.text }]}>No products found</Text>
+            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Try adjusting your search or filters</Text>
           </View>
         }
       />
@@ -370,13 +375,11 @@ export default function ProductsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
   },
   loadingText: {
     fontSize: 16,
@@ -386,7 +389,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
     padding: 20,
   },
   errorText: {
@@ -396,7 +398,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#10B981',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
@@ -404,20 +405,16 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingBottom: 10,
-    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   searchIcon: {
     marginRight: 10,
@@ -425,7 +422,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1f2937',
   },
   categoriesContainer: {
     marginBottom: 20,
@@ -433,14 +429,12 @@ const styles = StyleSheet.create({
   categoriesTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#374151',
     marginBottom: 8,
   },
   categoriesList: {
     paddingRight: 20,
   },
   categoryChip: {
-    backgroundColor: '#f3f4f6',
     marginRight: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -448,20 +442,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  selectedCategoryChip: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
   },
   categoryChipText: {
-    color: '#374151',
     fontWeight: '500',
     marginLeft: 6,
     fontSize: 14,
-  },
-  selectedCategoryChipText: {
-    color: 'white',
   },
   sortContainer: {
     marginBottom: 15,
@@ -469,7 +454,6 @@ const styles = StyleSheet.create({
   sortLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   sortButtons: {
@@ -478,28 +462,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sortButton: {
-    backgroundColor: '#f3f4f6',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  selectedSortButton: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
   },
   sortButtonText: {
     fontSize: 12,
-    color: '#374151',
     fontWeight: '500',
     marginLeft: 4,
   },
-  selectedSortButtonText: {
-    color: 'white',
-  },
+
   resultsContainer: {
     marginTop: 10,
     paddingTop: 10,
@@ -508,7 +483,6 @@ const styles = StyleSheet.create({
   },
   resultsCount: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
   },
   listContainer: {
@@ -519,7 +493,6 @@ const styles = StyleSheet.create({
     width: (width - 60) / 2,
     marginBottom: 20,
     marginHorizontal: 5,
-    backgroundColor: 'white',
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -571,7 +544,6 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   quickAddButton: {
-    backgroundColor: '#10B981',
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -594,9 +566,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  wishlistButtonActive: {
-    backgroundColor: '#ef4444',
-  },
+
   productContent: {
     padding: 12,
   },
@@ -604,12 +574,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
-    color: '#1f2937',
     lineHeight: 18,
   },
   productDescription: {
     fontSize: 12,
-    color: '#6b7280',
     marginBottom: 8,
     lineHeight: 16,
   },
@@ -620,26 +588,22 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   categoryTag: {
-    backgroundColor: '#f0fdf4',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
   },
   categoryText: {
     fontSize: 10,
-    color: '#10B981',
     fontWeight: '500',
   },
   productPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#10B981',
   },
   productActions: {
     marginTop: 5,
   },
   addToCartButton: {
-    backgroundColor: '#10B981',
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -660,12 +624,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
   },
 }); 

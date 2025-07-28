@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,16 +15,20 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useTheme } from '../contexts/ThemeContext';
 import CoolHeader from '../components/CoolHeader';
+import WishlistShareModal from '../components/WishlistShareModal';
 
 export default function WishlistScreen({ navigation }) {
+  const { colors } = useTheme();
   const { wishlistItems, removeFromWishlist, clearWishlist, loading, loadWishlist } = useWishlist();
   const { addToCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const { showSuccess, showError } = useNotification();
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Refresh wishlist when screen comes into focus
-  React.useEffect(() => {
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       loadWishlist();
     });
@@ -60,8 +64,16 @@ export default function WishlistScreen({ navigation }) {
     );
   };
 
+  const handleShareWishlist = () => {
+    if (wishlistItems.length === 0) {
+      Alert.alert('Empty Wishlist', 'Add some items to your wishlist before sharing!');
+      return;
+    }
+    setShowShareModal(true);
+  };
+
   const renderWishlistItem = (product, index) => (
-    <Card key={`${product._id || product.id || product.productId}-${index}`} style={styles.productCard}>
+    <Card key={`${product._id || product.id || product.productId}-${index}`} style={[styles.productCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.productRow}>
           <Image
@@ -70,13 +82,13 @@ export default function WishlistScreen({ navigation }) {
             resizeMode="cover"
           />
           <View style={styles.productInfo}>
-            <Title style={styles.productName} numberOfLines={2}>
+            <Title style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
               {product.name}
             </Title>
-            <Paragraph style={styles.productPrice}>
+            <Paragraph style={[styles.productPrice, { color: colors.primary }]}>
               ${product.price?.toFixed(2) || '0.00'}
             </Paragraph>
-            <Paragraph style={styles.productDescription} numberOfLines={2}>
+            <Paragraph style={[styles.productDescription, { color: colors.textSecondary }]} numberOfLines={2}>
               {product.shortDescription || product.description}
             </Paragraph>
           </View>
@@ -88,7 +100,7 @@ export default function WishlistScreen({ navigation }) {
             style={styles.actionButton}
             onPress={() => handleAddToCart(product)}
             icon="cart-plus"
-            textColor="#10B981"
+            textColor={colors.primary}
           >
             Add to Cart
           </Button>
@@ -96,7 +108,7 @@ export default function WishlistScreen({ navigation }) {
             style={styles.removeButton}
             onPress={() => handleRemoveFromWishlist(product)}
           >
-            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+            <Ionicons name="trash-outline" size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
       </Card.Content>
@@ -105,14 +117,15 @@ export default function WishlistScreen({ navigation }) {
 
   const renderEmptyWishlist = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="heart-outline" size={80} color="#d1d5db" />
-      <Title style={styles.emptyTitle}>Your Wishlist is Empty</Title>
-      <Paragraph style={styles.emptyText}>
+      <Ionicons name="heart-outline" size={80} color={colors.textTertiary} />
+      <Title style={[styles.emptyTitle, { color: colors.text }]}>Your Wishlist is Empty</Title>
+      <Paragraph style={[styles.emptyText, { color: colors.textSecondary }]}>
         Start adding products to your wishlist to save them for later!
       </Paragraph>
       <Button
         mode="contained"
         style={styles.browseButton}
+        buttonColor={colors.primary}
         onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })}
         icon="shopping"
       >
@@ -137,7 +150,7 @@ export default function WishlistScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CoolHeader
         title="My Wishlist"
         subtitle={`${wishlistItems.length} item${wishlistItems.length !== 1 ? 's' : ''} saved`}
@@ -152,17 +165,28 @@ export default function WishlistScreen({ navigation }) {
               })}
             </View>
             
-            <Card style={styles.clearCard}>
+            <Card style={[styles.clearCard, { backgroundColor: colors.card }]}>
               <Card.Content>
-                <Button
-                  mode="outlined"
-                  style={styles.clearButton}
-                  onPress={handleClearWishlist}
-                  icon="delete-sweep"
-                  textColor="#ef4444"
-                >
-                  Clear All Items
-                </Button>
+                <View style={styles.actionRow}>
+                  <Button
+                    mode="outlined"
+                    style={[styles.clearButton, { flex: 1, marginRight: 8 }]}
+                    onPress={handleClearWishlist}
+                    icon="delete-sweep"
+                    textColor={colors.error}
+                  >
+                    Clear All
+                  </Button>
+                  <Button
+                    mode="contained"
+                    style={[styles.shareButton, { flex: 1, marginLeft: 8 }]}
+                    onPress={handleShareWishlist}
+                    icon="share"
+                    buttonColor={colors.primary}
+                  >
+                    Share
+                  </Button>
+                </View>
               </Card.Content>
             </Card>
           </>
@@ -170,6 +194,13 @@ export default function WishlistScreen({ navigation }) {
           renderEmptyWishlist()
         )}
       </ScrollView>
+      
+      <WishlistShareModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        wishlistItems={wishlistItems}
+        wishlistName="My Wishlist"
+      />
     </View>
   );
 }
@@ -177,7 +208,6 @@ export default function WishlistScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -195,12 +225,10 @@ const styles = StyleSheet.create({
   productsContainer: {
     padding: 20,
     paddingTop: 0,
-    backgroundColor: '#f8fafc', // Added background color
     minHeight: 200, // Added minimum height
   },
   productCard: {
     marginBottom: 15,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -271,6 +299,13 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     borderColor: '#ef4444',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  shareButton: {
+    borderRadius: 8,
   },
   emptyContainer: {
     flex: 1,

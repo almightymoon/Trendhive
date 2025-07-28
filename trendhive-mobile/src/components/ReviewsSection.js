@@ -6,15 +6,20 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { Card, Title, Paragraph } from 'react-native-paper';
+import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
-export default function ReviewsSection({ productId }) {
+export default function ReviewsSection({ productId, productName }) {
+  const { colors } = useTheme();
+  const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
+
 
   useEffect(() => {
     if (productId) {
@@ -59,15 +64,17 @@ export default function ReviewsSection({ productId }) {
     return stars;
   };
 
+
+
   const renderReviewItem = (review) => (
-    <View key={review._id} style={styles.reviewItem}>
+    <View key={review._id} style={[styles.reviewItem, { borderBottomColor: colors.border }]}>
       <View style={styles.reviewHeader}>
         <View style={styles.reviewerInfo}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={20} color="#6B7280" />
+          <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
+            <Ionicons name="person" size={20} color={colors.textSecondary} />
           </View>
           <View>
-            <Text style={styles.reviewerName}>
+            <Text style={[styles.reviewerName, { color: colors.text }]}>
               {review.userName || 'Anonymous'}
             </Text>
             <View style={styles.starsContainer}>
@@ -75,13 +82,13 @@ export default function ReviewsSection({ productId }) {
             </View>
           </View>
         </View>
-        <Text style={styles.reviewDate}>
+        <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>
           {new Date(review.createdAt).toLocaleDateString()}
         </Text>
       </View>
       
       {review.comment && (
-        <Text style={styles.reviewComment}>
+        <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>
           {review.comment}
         </Text>
       )}
@@ -90,39 +97,41 @@ export default function ReviewsSection({ productId }) {
 
   if (loading) {
     return (
-      <Card style={styles.container}>
+      <Card style={[styles.container, { backgroundColor: colors.card }]}>
         <Card.Content>
-          <Title style={styles.title}>Reviews</Title>
-          <Text style={styles.loadingText}>Loading reviews...</Text>
+          <Title style={[styles.title, { color: colors.text }]}>Reviews</Title>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading reviews...</Text>
         </Card.Content>
       </Card>
     );
   }
 
   return (
-    <Card style={styles.container}>
+    <Card style={[styles.container, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.header}>
-          <Title style={styles.title}>Reviews</Title>
+          <Title style={[styles.title, { color: colors.text }]}>Reviews</Title>
           <View style={styles.ratingSummary}>
             <View style={styles.averageRating}>
-              <Text style={styles.ratingNumber}>{averageRating.toFixed(1)}</Text>
+              <Text style={[styles.ratingNumber, { color: colors.text }]}>{averageRating.toFixed(1)}</Text>
               <View style={styles.starsContainer}>
                 {renderStars(Math.round(averageRating))}
               </View>
             </View>
-            <Text style={styles.totalReviews}>
+            <Text style={[styles.totalReviews, { color: colors.textSecondary }]}>
               {totalReviews} review{totalReviews !== 1 ? 's' : ''}
             </Text>
           </View>
         </View>
 
+
+
         {reviews.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="star-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyText}>No reviews yet</Text>
-            <Text style={styles.emptySubtext}>
-              Be the first to review this product!
+            <Ionicons name="star-outline" size={48} color={colors.textTertiary} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No reviews yet</Text>
+            <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
+              No reviews yet for this product
             </Text>
           </View>
         ) : (
@@ -130,6 +139,8 @@ export default function ReviewsSection({ productId }) {
             {reviews.map(renderReviewItem)}
           </ScrollView>
         )}
+
+
       </Card.Content>
     </Card>
   );
@@ -139,7 +150,7 @@ const styles = StyleSheet.create({
   container: {
     margin: 20,
     marginTop: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#f8fafc',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -243,4 +254,5 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 20,
   },
+
 }); 

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +19,7 @@ const NotificationToast = ({
   duration = 3000, 
   onHide 
 }) => {
+  const { colors } = useTheme();
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -67,13 +69,13 @@ const NotificationToast = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: '#10B981',
+          backgroundColor: colors.primary,
           icon: 'checkmark-circle',
           iconColor: '#ffffff',
         };
       case 'error':
         return {
-          backgroundColor: '#EF4444',
+          backgroundColor: colors.error,
           icon: 'close-circle',
           iconColor: '#ffffff',
         };
@@ -91,7 +93,7 @@ const NotificationToast = ({
         };
       default:
         return {
-          backgroundColor: '#10B981',
+          backgroundColor: colors.primary,
           icon: 'checkmark-circle',
           iconColor: '#ffffff',
         };

@@ -11,10 +11,13 @@ import { Card, Title, Paragraph, Button, TextInput, RadioButton } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { apiService } from '../services/apiService';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import ReviewPrompt from '../components/ReviewPrompt';
 
 export default function CheckoutScreen({ navigation, route }) {
+  const { colors } = useTheme();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -33,6 +36,7 @@ export default function CheckoutScreen({ navigation, route }) {
   });
   const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [showShippingForm, setShowShippingForm] = useState(true);
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
 
   // Get selected items from route params or use all cart items as fallback
   const selectedItems = route.params?.selectedItems || cartItems;
@@ -142,6 +146,24 @@ export default function CheckoutScreen({ navigation, route }) {
     setShippingInfo(prev => ({ ...prev, [field]: value }));
   };
 
+  const getTextInputTheme = () => ({
+    colors: {
+      primary: colors.primary,
+      text: colors.text,
+      placeholder: colors.textSecondary,
+      background: colors.card,
+      onSurface: colors.text,
+      surface: colors.card,
+      outline: colors.border,
+      onSurfaceVariant: colors.primary,
+      primaryContainer: colors.primary,
+      onPrimaryContainer: '#ffffff',
+      secondary: colors.primary,
+      secondaryContainer: colors.primary,
+      onSecondaryContainer: '#ffffff',
+    }
+  });
+
   const validateShippingInfo = () => {
     const required = ['fullName', 'email', 'address', 'city', 'state', 'zipCode'];
     for (const field of required) {
@@ -186,7 +208,11 @@ export default function CheckoutScreen({ navigation, route }) {
           [
             {
               text: 'OK',
-              onPress: () => navigation.navigate('Orders'),
+              onPress: () => {
+                // Show review prompt after successful order
+                setShowReviewPrompt(true);
+                navigation.navigate('Orders');
+              },
             },
           ]
         );
@@ -200,36 +226,37 @@ export default function CheckoutScreen({ navigation, route }) {
   };
 
   const renderAddressSelector = () => (
-    <Card style={styles.sectionCard}>
+    <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.sectionHeader}>
-          <Ionicons name="location-outline" size={24} color="#10B981" />
-          <Title style={styles.sectionTitle}>Select Shipping Address</Title>
+          <Ionicons name="location-outline" size={24} color={colors.primary} />
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Select Shipping Address</Title>
         </View>
         
         {savedAddresses.length > 0 && (
           <View style={styles.savedAddressesContainer}>
-            <Text style={styles.sectionSubtitle}>Saved Addresses</Text>
+            <Text style={[styles.sectionSubtitle, { color: colors.text }]}>Saved Addresses</Text>
             {savedAddresses.map((address) => (
               <TouchableOpacity
                 key={address._id}
                 style={[
                   styles.addressCard,
-                  selectedAddressId === address._id && styles.selectedAddressCard
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                  selectedAddressId === address._id && { borderColor: colors.primary, backgroundColor: colors.surfaceVariant }
                 ]}
                 onPress={() => handleSelectAddress(address)}
               >
                 <View style={styles.addressContent}>
-                  <Text style={styles.addressName}>{address.name || address.fullName}</Text>
-                  <Text style={styles.addressText}>{address.address}</Text>
-                  <Text style={styles.addressText}>
+                  <Text style={[styles.addressName, { color: colors.text }]}>{address.name || address.fullName}</Text>
+                  <Text style={[styles.addressText, { color: colors.textSecondary }]}>{address.address}</Text>
+                  <Text style={[styles.addressText, { color: colors.textSecondary }]}>
                     {address.city}, {address.state} {address.zipCode}
                   </Text>
-                  <Text style={styles.addressText}>{address.country}</Text>
-                  <Text style={styles.addressPhone}>{address.phone}</Text>
+                  <Text style={[styles.addressText, { color: colors.textSecondary }]}>{address.country}</Text>
+                  <Text style={[styles.addressPhone, { color: colors.textSecondary }]}>{address.phone}</Text>
                 </View>
                 {selectedAddressId === address._id && (
-                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                  <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                 )}
               </TouchableOpacity>
             ))}
@@ -237,34 +264,34 @@ export default function CheckoutScreen({ navigation, route }) {
         )}
         
         <TouchableOpacity
-          style={styles.newAddressButton}
+          style={[styles.newAddressButton, { backgroundColor: colors.surfaceVariant, borderColor: colors.border }]}
           onPress={handleUseNewAddress}
         >
-          <Ionicons name="add-circle-outline" size={20} color="#10B981" />
-          <Text style={styles.newAddressText}>Use New Address</Text>
+          <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+          <Text style={[styles.newAddressText, { color: colors.text }]}>Use New Address</Text>
         </TouchableOpacity>
       </Card.Content>
     </Card>
   );
 
   const renderShippingForm = () => (
-    <Card style={styles.sectionCard}>
+    <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.sectionHeader}>
-          <Ionicons name="location-outline" size={24} color="#10B981" />
-          <Title style={styles.sectionTitle}>Shipping Information</Title>
+          <Ionicons name="location-outline" size={24} color={colors.primary} />
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Shipping Information</Title>
         </View>
         
         {savedAddresses.length > 0 && (
           <TouchableOpacity
-            style={styles.savedAddressesButton}
+            style={[styles.savedAddressesButton, { backgroundColor: colors.surfaceVariant, borderColor: colors.primary }]}
             onPress={() => setShowAddressSelector(true)}
           >
-            <Ionicons name="bookmark-outline" size={20} color="#10B981" />
-            <Text style={styles.savedAddressesText}>
+            <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
+            <Text style={[styles.savedAddressesText, { color: colors.primary }]}>
               Use Saved Address ({savedAddresses.length} available)
             </Text>
-            <Ionicons name="chevron-forward" size={20} color="#10B981" />
+            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
           </TouchableOpacity>
         )}
         
@@ -274,23 +301,7 @@ export default function CheckoutScreen({ navigation, route }) {
           onChangeText={(value) => updateShippingInfo('fullName', value)}
             mode="outlined"
           style={styles.input}
-          theme={{
-            colors: {
-              primary: '#10B981',
-              text: '#000000',
-              placeholder: '#666666',
-              background: 'white',
-              onSurface: '#000000',
-              surface: 'white',
-              outline: '#d1d5db',
-              onSurfaceVariant: '#10B981',
-              primaryContainer: '#10B981',
-              onPrimaryContainer: '#ffffff',
-              secondary: '#10B981',
-              secondaryContainer: '#10B981',
-              onSecondaryContainer: '#ffffff',
-            }
-          }}
+          theme={getTextInputTheme()}
           />
 
         <TextInput
@@ -299,24 +310,8 @@ export default function CheckoutScreen({ navigation, route }) {
           onChangeText={(value) => updateShippingInfo('email', value)}
           mode="outlined"
           style={styles.input}
+          theme={getTextInputTheme()}
           keyboardType="email-address"
-          theme={{
-            colors: {
-              primary: '#10B981',
-              text: '#000000',
-              placeholder: '#666666',
-              background: 'white',
-              onSurface: '#000000',
-              surface: 'white',
-              outline: '#d1d5db',
-              onSurfaceVariant: '#10B981',
-              primaryContainer: '#10B981',
-              onPrimaryContainer: '#ffffff',
-              secondary: '#10B981',
-              secondaryContainer: '#10B981',
-              onSecondaryContainer: '#ffffff',
-            }
-          }}
         />
 
         <TextInput
@@ -326,23 +321,7 @@ export default function CheckoutScreen({ navigation, route }) {
           mode="outlined"
           style={styles.input}
           keyboardType="phone-pad"
-          theme={{
-            colors: {
-              primary: '#10B981',
-              text: '#000000',
-              placeholder: '#666666',
-              background: 'white',
-              onSurface: '#000000',
-              surface: 'white',
-              outline: '#d1d5db',
-              onSurfaceVariant: '#10B981',
-              primaryContainer: '#10B981',
-              onPrimaryContainer: '#ffffff',
-              secondary: '#10B981',
-              secondaryContainer: '#10B981',
-              onSecondaryContainer: '#ffffff',
-            }
-          }}
+          theme={getTextInputTheme()}
         />
 
         <TextInput
@@ -352,23 +331,7 @@ export default function CheckoutScreen({ navigation, route }) {
           mode="outlined"
           style={styles.input}
           multiline
-          theme={{
-            colors: {
-              primary: '#10B981',
-              text: '#000000',
-              placeholder: '#666666',
-              background: 'white',
-              onSurface: '#000000',
-              surface: 'white',
-              outline: '#d1d5db',
-              onSurfaceVariant: '#10B981',
-              primaryContainer: '#10B981',
-              onPrimaryContainer: '#ffffff',
-              secondary: '#10B981',
-              secondaryContainer: '#10B981',
-              onSecondaryContainer: '#ffffff',
-            }
-          }}
+          theme={getTextInputTheme()}
         />
 
         <View style={styles.formRow}>
@@ -378,23 +341,7 @@ export default function CheckoutScreen({ navigation, route }) {
             onChangeText={(value) => updateShippingInfo('city', value)}
             mode="outlined"
             style={[styles.input, styles.halfInput]}
-            theme={{
-              colors: {
-                primary: '#10B981',
-                text: '#000000',
-                placeholder: '#666666',
-                background: 'white',
-                onSurface: '#000000',
-                surface: 'white',
-                outline: '#d1d5db',
-                onSurfaceVariant: '#10B981',
-                primaryContainer: '#10B981',
-                onPrimaryContainer: '#ffffff',
-                secondary: '#10B981',
-                secondaryContainer: '#10B981',
-                onSecondaryContainer: '#ffffff',
-              }
-            }}
+            theme={getTextInputTheme()}
           />
           <TextInput
             label="State"
@@ -402,23 +349,7 @@ export default function CheckoutScreen({ navigation, route }) {
             onChangeText={(value) => updateShippingInfo('state', value)}
             mode="outlined"
             style={[styles.input, styles.halfInput]}
-            theme={{
-              colors: {
-                primary: '#10B981',
-                text: '#000000',
-                placeholder: '#666666',
-                background: 'white',
-                onSurface: '#000000',
-                surface: 'white',
-                outline: '#d1d5db',
-                onSurfaceVariant: '#10B981',
-                primaryContainer: '#10B981',
-                onPrimaryContainer: '#ffffff',
-                secondary: '#10B981',
-                secondaryContainer: '#10B981',
-                onSecondaryContainer: '#ffffff',
-              }
-            }}
+            theme={getTextInputTheme()}
           />
         </View>
 
@@ -430,23 +361,7 @@ export default function CheckoutScreen({ navigation, route }) {
             mode="outlined"
             style={[styles.input, styles.halfInput]}
             keyboardType="numeric"
-            theme={{
-              colors: {
-                primary: '#10B981',
-                text: '#000000',
-                placeholder: '#666666',
-                background: 'white',
-                onSurface: '#000000',
-                surface: 'white',
-                outline: '#d1d5db',
-                onSurfaceVariant: '#10B981',
-                primaryContainer: '#10B981',
-                onPrimaryContainer: '#ffffff',
-                secondary: '#10B981',
-                secondaryContainer: '#10B981',
-                onSecondaryContainer: '#ffffff',
-              }
-            }}
+            theme={getTextInputTheme()}
           />
           <TextInput
             label="Country"
@@ -454,33 +369,17 @@ export default function CheckoutScreen({ navigation, route }) {
             onChangeText={(value) => updateShippingInfo('country', value)}
             mode="outlined"
             style={[styles.input, styles.halfInput]}
-            theme={{
-              colors: {
-                primary: '#10B981',
-                text: '#000000',
-                placeholder: '#666666',
-                background: 'white',
-                onSurface: '#000000',
-                surface: 'white',
-                outline: '#d1d5db',
-                onSurfaceVariant: '#10B981',
-                primaryContainer: '#10B981',
-                onPrimaryContainer: '#ffffff',
-                secondary: '#10B981',
-                secondaryContainer: '#10B981',
-                onSecondaryContainer: '#ffffff',
-              }
-            }}
+            theme={getTextInputTheme()}
           />
         </View>
 
         {savedAddresses.length > 0 && (
           <TouchableOpacity
-            style={styles.saveAddressButton}
+            style={[styles.saveAddressButton, { backgroundColor: colors.surfaceVariant, borderColor: colors.primary }]}
             onPress={handleSaveCurrentAddress}
           >
-            <Ionicons name="bookmark-outline" size={20} color="#10B981" />
-            <Text style={styles.saveAddressText}>Save This Address</Text>
+            <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
+            <Text style={[styles.saveAddressText, { color: colors.primary }]}>Save This Address</Text>
           </TouchableOpacity>
         )}
       </Card.Content>
@@ -488,30 +387,30 @@ export default function CheckoutScreen({ navigation, route }) {
   );
 
   const renderPaymentMethods = () => (
-    <Card style={styles.sectionCard}>
+    <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.sectionHeader}>
-          <Ionicons name="card-outline" size={24} color="#10B981" />
-          <Title style={styles.sectionTitle}>Payment Method</Title>
+          <Ionicons name="card-outline" size={24} color={colors.primary} />
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Payment Method</Title>
         </View>
 
         <RadioButton.Group onValueChange={setPaymentMethod} value={paymentMethod}>
-          <View style={styles.paymentOption}>
-            <RadioButton value="stripe" color="#10B981" />
+          <View style={[styles.paymentOption, { borderBottomColor: colors.border }]}>
+            <RadioButton value="stripe" color={colors.primary} />
             <View style={styles.paymentOptionContent}>
-              <Text style={styles.paymentOptionTitle}>Credit/Debit Card</Text>
-              <Text style={styles.paymentOptionSubtitle}>Visa, Mastercard, American Express</Text>
+              <Text style={[styles.paymentOptionTitle, { color: colors.text }]}>Credit/Debit Card</Text>
+              <Text style={[styles.paymentOptionSubtitle, { color: colors.textSecondary }]}>Visa, Mastercard, American Express</Text>
             </View>
-            <Ionicons name="card" size={24} color="#10B981" />
+            <Ionicons name="card" size={24} color={colors.primary} />
           </View>
 
-          <View style={styles.paymentOption}>
-            <RadioButton value="paypal" color="#10B981" />
+          <View style={[styles.paymentOption, { borderBottomColor: colors.border }]}>
+            <RadioButton value="paypal" color={colors.primary} />
             <View style={styles.paymentOptionContent}>
-              <Text style={styles.paymentOptionTitle}>PayPal</Text>
-              <Text style={styles.paymentOptionSubtitle}>Pay with your PayPal account</Text>
+              <Text style={[styles.paymentOptionTitle, { color: colors.text }]}>PayPal</Text>
+              <Text style={[styles.paymentOptionSubtitle, { color: colors.textSecondary }]}>Pay with your PayPal account</Text>
             </View>
-            <Ionicons name="logo-paypal" size={24} color="#10B981" />
+            <Ionicons name="logo-paypal" size={24} color={colors.primary} />
           </View>
         </RadioButton.Group>
       </Card.Content>
@@ -519,23 +418,23 @@ export default function CheckoutScreen({ navigation, route }) {
   );
 
   const renderOrderSummary = () => (
-    <Card style={styles.sectionCard}>
+    <Card style={[styles.sectionCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.sectionHeader}>
-          <Ionicons name="receipt-outline" size={24} color="#10B981" />
-          <Title style={styles.sectionTitle}>Order Summary</Title>
+          <Ionicons name="receipt-outline" size={24} color={colors.primary} />
+          <Title style={[styles.sectionTitle, { color: colors.text }]}>Order Summary</Title>
         </View>
 
         <View style={styles.orderItems}>
           {selectedItems.map((item, index) => (
             <View key={index} style={styles.orderItem}>
               <View style={styles.itemInfo}>
-                <Text style={styles.itemName} numberOfLines={2}>
+                <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={2}>
                   {item.name}
                 </Text>
-                <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                <Text style={[styles.itemQuantity, { color: colors.textSecondary }]}>Qty: {item.quantity}</Text>
               </View>
-              <Text style={styles.itemPrice}>
+              <Text style={[styles.itemPrice, { color: colors.primary }]}>
                 ${(item.price * item.quantity).toFixed(2)}
               </Text>
             </View>
@@ -543,23 +442,23 @@ export default function CheckoutScreen({ navigation, route }) {
         </View>
 
         <View style={styles.orderTotals}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalValue}>${subtotal.toFixed(2)}</Text>
+          <View style={[styles.totalRow, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>Subtotal</Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>${subtotal.toFixed(2)}</Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Shipping</Text>
-            <Text style={styles.totalValue}>
+          <View style={[styles.totalRow, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>Shipping</Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>
               {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
             </Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Tax</Text>
-            <Text style={styles.totalValue}>${tax.toFixed(2)}</Text>
+          <View style={[styles.totalRow, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>Tax</Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>${tax.toFixed(2)}</Text>
           </View>
-          <View style={[styles.totalRow, styles.finalTotal]}>
-            <Text style={styles.finalTotalLabel}>Total</Text>
-            <Text style={styles.finalTotalValue}>${total.toFixed(2)}</Text>
+          <View style={[styles.totalRow, styles.finalTotal, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.finalTotalLabel, { color: colors.text }]}>Total</Text>
+            <Text style={[styles.finalTotalValue, { color: colors.primary }]}>${total.toFixed(2)}</Text>
           </View>
         </View>
       </Card.Content>
@@ -582,32 +481,41 @@ export default function CheckoutScreen({ navigation, route }) {
 
   if (!user) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Please sign in to continue...</Text>
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: colors.text }}>Please sign in to continue...</Text>
       </View>
     );
   }
 
   return (
     <SafeAreaWrapper>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: colors.background }]}>
         {showAddressSelector ? renderAddressSelector() : renderShippingForm()}
         {renderPaymentMethods()}
         {renderOrderSummary()}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
         <Button
           mode="contained"
           style={styles.placeOrderButton}
           onPress={handlePlaceOrder}
           loading={loading}
           disabled={loading || selectedItems.length === 0}
+          buttonColor={colors.primary}
         >
           <Ionicons name="checkmark-circle-outline" size={20} color="white" />
           <Text style={styles.placeOrderText}> Place Order - ${total.toFixed(2)}</Text>
         </Button>
       </View>
+
+      {/* Review Prompt */}
+      <ReviewPrompt
+        visible={showReviewPrompt}
+        onClose={() => setShowReviewPrompt(false)}
+        products={selectedItems}
+        orderId={null}
+      />
     </SafeAreaWrapper>
   );
 }
@@ -615,7 +523,6 @@ export default function CheckoutScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -623,7 +530,6 @@ const styles = StyleSheet.create({
   sectionCard: {
     margin: 20,
     marginBottom: 10,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -639,7 +545,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginLeft: 10,
   },
   formRow: {
@@ -649,7 +554,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 15,
-    backgroundColor: 'white',
   },
   halfInput: {
     flex: 1,
@@ -659,7 +563,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   paymentOptionContent: {
     flex: 1,
@@ -668,11 +571,9 @@ const styles = StyleSheet.create({
   paymentOptionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
   },
   paymentOptionSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
     marginTop: 2,
   },
   orderItems: {
@@ -684,7 +585,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   itemInfo: {
     flex: 1,
@@ -692,21 +592,17 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 2,
   },
   itemQuantity: {
     fontSize: 12,
-    color: '#6b7280',
   },
   itemPrice: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#10B981',
   },
   orderTotals: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 15,
   },
   totalRow: {
@@ -717,37 +613,29 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    color: '#6b7280',
   },
   totalValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
   },
   finalTotal: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 15,
     marginTop: 10,
   },
   finalTotalLabel: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   finalTotalValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#10B981',
   },
   footer: {
-    backgroundColor: 'white',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
   },
   placeOrderButton: {
-    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -762,18 +650,15 @@ const styles = StyleSheet.create({
   savedAddressesButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0fdf4',
     padding: 15,
     borderRadius: 8,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#10B981',
   },
   savedAddressesText: {
     flex: 1,
     marginLeft: 10,
     fontSize: 16,
-    color: '#10B981',
     fontWeight: '600',
   },
   savedAddressesContainer: {
@@ -782,22 +667,18 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 15,
   },
   addressCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 15,
     borderRadius: 8,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   selectedAddressCard: {
-    borderColor: '#10B981',
-    backgroundColor: '#f0fdf4',
+    // Handled dynamically in component
   },
   addressContent: {
     flex: 1,
@@ -805,49 +686,40 @@ const styles = StyleSheet.create({
   addressName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 5,
   },
   addressText: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 2,
   },
   addressPhone: {
     fontSize: 14,
-    color: '#6b7280',
     marginTop: 5,
   },
   newAddressButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d1d5db',
   },
   newAddressText: {
     marginLeft: 10,
     fontSize: 16,
-    color: '#374151',
     fontWeight: '500',
   },
   saveAddressButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f0fdf4',
     padding: 12,
     borderRadius: 8,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#10B981',
   },
   saveAddressText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#10B981',
     fontWeight: '600',
   },
 }); 

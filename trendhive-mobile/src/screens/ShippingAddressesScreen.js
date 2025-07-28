@@ -13,8 +13,10 @@ import { TextInput, Button, Title, Card, FAB } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function ShippingAddressesScreen({ navigation }) {
+  const { colors } = useTheme();
   const { user } = useAuth();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -208,10 +210,28 @@ export default function ShippingAddressesScreen({ navigation }) {
     }
   };
 
+  const getTextInputTheme = (hasError = false) => ({
+    colors: {
+      primary: colors.primary,
+      text: colors.text,
+      placeholder: colors.textSecondary,
+      background: colors.card,
+      onSurface: colors.text,
+      surface: colors.card,
+      outline: hasError ? colors.error : colors.border,
+      onSurfaceVariant: colors.primary,
+      primaryContainer: colors.primary,
+      onPrimaryContainer: '#ffffff',
+      secondary: colors.primary,
+      secondaryContainer: colors.primary,
+      onSecondaryContainer: '#ffffff',
+    }
+  });
+
   const renderAddressForm = () => (
-    <Card style={styles.formCard}>
+    <Card style={[styles.formCard, { backgroundColor: colors.card }]}>
       <Card.Content>
-        <Title style={styles.formTitle}>
+        <Title style={[styles.formTitle, { color: colors.text }]}>
           {editingAddress ? 'Edit Address' : 'Add New Address'}
         </Title>
 
@@ -222,6 +242,7 @@ export default function ShippingAddressesScreen({ navigation }) {
           mode="outlined"
           style={[styles.input, errors.name ? styles.inputError : null]}
           error={!!errors.name}
+          theme={getTextInputTheme(!!errors.name)}
         />
         {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
 
@@ -233,6 +254,7 @@ export default function ShippingAddressesScreen({ navigation }) {
           style={[styles.input, errors.phone ? styles.inputError : null]}
           keyboardType="phone-pad"
           error={!!errors.phone}
+          theme={getTextInputTheme(!!errors.phone)}
         />
         {errors.phone ? <Text style={styles.errorText}>{errors.phone}</Text> : null}
 
@@ -245,6 +267,7 @@ export default function ShippingAddressesScreen({ navigation }) {
           multiline
           numberOfLines={2}
           error={!!errors.address}
+          theme={getTextInputTheme(!!errors.address)}
         />
         {errors.address ? <Text style={styles.errorText}>{errors.address}</Text> : null}
 
@@ -256,6 +279,7 @@ export default function ShippingAddressesScreen({ navigation }) {
             mode="outlined"
             style={[styles.halfInput, errors.city ? styles.inputError : null]}
             error={!!errors.city}
+            theme={getTextInputTheme(!!errors.city)}
           />
           <TextInput
             label="State"
@@ -264,6 +288,7 @@ export default function ShippingAddressesScreen({ navigation }) {
             mode="outlined"
             style={[styles.halfInput, errors.state ? styles.inputError : null]}
             error={!!errors.state}
+            theme={getTextInputTheme(!!errors.state)}
           />
         </View>
 
@@ -276,6 +301,7 @@ export default function ShippingAddressesScreen({ navigation }) {
             style={[styles.halfInput, errors.zipCode ? styles.inputError : null]}
             keyboardType="numeric"
             error={!!errors.zipCode}
+            theme={getTextInputTheme(!!errors.zipCode)}
           />
           <TextInput
             label="Country"
@@ -284,19 +310,21 @@ export default function ShippingAddressesScreen({ navigation }) {
             mode="outlined"
             style={[styles.halfInput, errors.country ? styles.inputError : null]}
             error={!!errors.country}
+            theme={getTextInputTheme(!!errors.country)}
           />
         </View>
 
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
-            style={styles.cancelButton}
+            style={[styles.cancelButton, { borderColor: colors.border }]}
             onPress={() => {
               setShowAddForm(false);
               setEditingAddress(null);
               resetForm();
             }}
             disabled={loading}
+            textColor={colors.text}
           >
             Cancel
           </Button>
@@ -306,6 +334,7 @@ export default function ShippingAddressesScreen({ navigation }) {
             onPress={handleSaveAddress}
             loading={loading}
             disabled={loading}
+            buttonColor={colors.primary}
           >
             {editingAddress ? 'Update' : 'Save'}
           </Button>
@@ -315,13 +344,13 @@ export default function ShippingAddressesScreen({ navigation }) {
   );
 
   const renderAddressCard = (address) => (
-    <Card key={address._id} style={styles.addressCard}>
+    <Card key={address._id} style={[styles.addressCard, { backgroundColor: colors.card }]}>
       <Card.Content>
         <View style={styles.addressHeader}>
           <View style={styles.addressInfo}>
-            <Text style={styles.addressName}>{address.name || address.fullName}</Text>
+            <Text style={[styles.addressName, { color: colors.text }]}>{address.name || address.fullName}</Text>
             {address.isDefault && (
-              <View style={styles.defaultBadge}>
+              <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
                 <Text style={styles.defaultText}>Default</Text>
               </View>
             )}
@@ -331,29 +360,29 @@ export default function ShippingAddressesScreen({ navigation }) {
               style={styles.actionButton}
               onPress={() => handleEditAddress(address)}
             >
-              <Ionicons name="pencil" size={20} color="#10B981" />
+              <Ionicons name="pencil" size={20} color={colors.primary} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => handleDeleteAddress(address._id || address.id)}
             >
-              <Ionicons name="trash" size={20} color="#ef4444" />
+              <Ionicons name="trash" size={20} color={colors.error} />
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.addressPhone}>{address.phone}</Text>
-        <Text style={styles.addressText}>{address.address}</Text>
-        <Text style={styles.addressText}>
+        <Text style={[styles.addressPhone, { color: colors.textSecondary }]}>{address.phone}</Text>
+        <Text style={[styles.addressText, { color: colors.textSecondary }]}>{address.address}</Text>
+        <Text style={[styles.addressText, { color: colors.textSecondary }]}>
           {address.city}, {address.state} {address.zipCode}
         </Text>
-        <Text style={styles.addressText}>{address.country}</Text>
+        <Text style={[styles.addressText, { color: colors.textSecondary }]}>{address.country}</Text>
       </Card.Content>
     </Card>
   );
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView style={styles.scrollView}>
@@ -362,18 +391,18 @@ export default function ShippingAddressesScreen({ navigation }) {
         ) : (
           <>
             <View style={styles.header}>
-              <Title style={styles.title}>Shipping Addresses</Title>
-              <Text style={styles.subtitle}>
+              <Title style={[styles.title, { color: colors.text }]}>Shipping Addresses</Title>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                 Manage your delivery addresses
               </Text>
             </View>
 
             {addresses.length === 0 ? (
-              <Card style={styles.emptyCard}>
+              <Card style={[styles.emptyCard, { backgroundColor: colors.card }]}>
                 <Card.Content style={styles.emptyContent}>
-                  <Ionicons name="location-outline" size={60} color="#d1d5db" />
-                  <Text style={styles.emptyTitle}>No Addresses</Text>
-                  <Text style={styles.emptyText}>
+                  <Ionicons name="location-outline" size={60} color={colors.textTertiary} />
+                  <Text style={[styles.emptyTitle, { color: colors.text }]}>No Addresses</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                     Add your first shipping address to get started
                   </Text>
                 </Card.Content>
@@ -387,7 +416,7 @@ export default function ShippingAddressesScreen({ navigation }) {
 
       {!showAddForm && (
         <FAB
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: colors.primary }]}
           icon="plus"
           onPress={() => setShowAddForm(true)}
         />
@@ -399,7 +428,6 @@ export default function ShippingAddressesScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -411,16 +439,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
   },
   formCard: {
     margin: 20,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -431,23 +456,19 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 20,
   },
   input: {
     marginBottom: 15,
-    backgroundColor: 'white',
   },
   halfInput: {
     flex: 1,
     marginBottom: 15,
-    backgroundColor: 'white',
   },
   inputError: {
-    borderColor: '#ef4444',
+    // Handled dynamically
   },
   errorText: {
-    color: '#ef4444',
     fontSize: 12,
     marginTop: -10,
     marginBottom: 10,
@@ -465,16 +486,13 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     marginRight: 10,
-    borderColor: '#6b7280',
   },
   saveButton: {
     flex: 1,
     marginLeft: 10,
-    backgroundColor: '#10B981',
   },
   emptyCard: {
     margin: 20,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -489,19 +507,16 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginTop: 15,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
   },
   addressCard: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -523,11 +538,9 @@ const styles = StyleSheet.create({
   addressName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginRight: 10,
   },
   defaultBadge: {
-    backgroundColor: '#10B981',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
@@ -546,12 +559,10 @@ const styles = StyleSheet.create({
   },
   addressPhone: {
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 5,
   },
   addressText: {
     fontSize: 14,
-    color: '#374151',
     marginBottom: 2,
   },
   fab: {
@@ -559,6 +570,5 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#10B981',
   },
 }); 
