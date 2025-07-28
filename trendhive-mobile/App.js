@@ -29,6 +29,7 @@ import OrderDetailScreen from './src/screens/OrderDetailScreen';
 import ReorderScreen from './src/screens/ReorderScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
+import ReviewsScreen from './src/screens/ReviewsScreen';
 
 // Import new feature screens
 import ThemeSettingsScreen from './src/screens/ThemeSettingsScreen';
@@ -204,6 +205,11 @@ function MainAppNavigator() {
       <Stack.Screen 
         name="TermsOfService" 
         component={TermsOfServiceScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Reviews" 
+        component={ReviewsScreen}
         options={{ headerShown: false }}
       />
       

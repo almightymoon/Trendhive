@@ -52,6 +52,17 @@ export default function ProfileScreen({ navigation }) {
       }
     },
     {
+      title: 'My Reviews',
+      icon: 'star-outline',
+      onPress: () => {
+        if (!user) {
+          Alert.alert('Sign In Required', 'Please sign in to view your reviews.');
+          return;
+        }
+        navigation.navigate('Reviews');
+      }
+    },
+    {
       title: 'My Wishlist',
       icon: 'heart-outline',
       badge: getWishlistCount(),

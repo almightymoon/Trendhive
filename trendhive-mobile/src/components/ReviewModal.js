@@ -14,11 +14,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { apiService } from '../services/apiService';
 
-export default function ReviewModal({ visible, onClose, productId, productName, onReviewSubmitted }) {
+export default function ReviewModal({ visible, onClose, productId, productName, onReviewSubmitted, existingReview }) {
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(existingReview?.rating || 0);
+  const [comment, setComment] = useState(existingReview?.comment || '');
   const [loading, setLoading] = useState(false);
   const [hoveredRating, setHoveredRating] = useState(0);
 
@@ -46,27 +46,45 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
       return;
     }
 
+    console.log('ReviewModal - User authentication check:', {
+      user: user ? 'User logged in' : 'No user',
+      userId: user?._id || user?.id,
+      userEmail: user?.email
+    });
+
     console.log('ReviewModal - Submitting review with data:', {
       productId,
       rating,
       comment: comment.trim(),
-      user: user ? 'User logged in' : 'No user'
+      user: user ? 'User logged in' : 'No user',
+      isEditing: !!existingReview
     });
+
+    // Validate productId
+    if (!productId) {
+      Alert.alert('Error', 'Product ID is missing');
+      return;
+    }
 
     setLoading(true);
     try {
       const reviewData = {
-        productId,
-        rating,
+        productId: productId.toString(), // Ensure it's a string
+        rating: parseInt(rating), // Ensure it's a number
         comment: comment.trim(),
       };
+
+      // If editing existing review, include the review ID
+      if (existingReview) {
+        reviewData.reviewId = existingReview._id;
+      }
 
       console.log('ReviewModal - Calling apiService.submitReview with:', reviewData);
       const response = await apiService.submitReview(reviewData);
       console.log('ReviewModal - API response:', response);
       
       if (response.success) {
-        Alert.alert('Success', 'Review submitted successfully!');
+        Alert.alert('Success', existingReview ? 'Review updated successfully!' : 'Review submitted successfully!');
         setRating(0);
         setComment('');
         onReviewSubmitted();
@@ -80,9 +98,25 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
       console.error('ReviewModal - Error details:', {
         message: error.message,
         response: error.response,
-        status: error.status
+        status: error.status,
+        errorType: typeof error,
+        errorKeys: Object.keys(error || {}),
+        fullError: JSON.stringify(error, null, 2)
       });
-      Alert.alert('Error', `Failed to submit review: ${error.message || 'Unknown error'}`);
+      
+      // Handle different error formats
+      let errorMessage = 'Failed to submit review';
+      if (error && typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && error.message) {
+        errorMessage = error.message;
+      } else if (error && error.error) {
+        errorMessage = error.error;
+      } else if (error && error.details) {
+        errorMessage = error.details;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -132,7 +166,9 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.modalHeader}>
-            <Title style={[styles.modalTitle, { color: colors.text }]}>Write a Review</Title>
+            <Title style={[styles.modalTitle, { color: colors.text }]}>
+              {existingReview ? 'Edit Review' : 'Write a Review'}
+            </Title>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
@@ -195,16 +231,16 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
             >
               Cancel
             </Button>
-            <Button
-              mode="contained"
-              onPress={handleSubmitReview}
-              loading={loading}
-              disabled={loading || rating === 0 || !comment.trim()}
-              style={styles.submitButton}
-              buttonColor={colors.primary}
-            >
-              Submit Review
-            </Button>
+                                    <Button
+                          mode="contained"
+                          onPress={handleSubmitReview}
+                          loading={loading}
+                          disabled={loading || rating === 0 || !comment.trim()}
+                          style={styles.submitButton}
+                          buttonColor={colors.primary}
+                        >
+                          {existingReview ? 'Update Review' : 'Submit Review'}
+                        </Button>
           </View>
         </View>
       </View>

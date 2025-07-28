@@ -33,11 +33,21 @@ class ApiService {
       },
       (error) => {
         console.error('API Response Error:', error.response?.status, error.response?.data, error.message);
+        console.error('API Error Details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+          config: error.config
+        });
+        
         if (error.response?.status === 401) {
           // Handle unauthorized access
           this.authToken = null;
         }
-        return Promise.reject(error.response?.data || error.message);
+        
+        // Return the error data if available, otherwise return the error message
+        const errorData = error.response?.data || error.message || 'Network error';
+        return Promise.reject(errorData);
       }
     );
   }
@@ -176,11 +186,28 @@ class ApiService {
 
   // Reviews
   async submitReview(reviewData) {
-    return this.api.post('/reviews', reviewData);
+    console.log('API Service - submitReview called with:', reviewData);
+    console.log('API Service - Current auth token:', this.authToken ? 'Present' : 'Missing');
+    console.log('API Service - Base URL:', API_CONFIG.BASE_URL);
+    
+    try {
+      const response = await this.api.post('/reviews', reviewData);
+      console.log('API Service - submitReview response:', response);
+      return response;
+    } catch (error) {
+      console.error('API Service - submitReview error:', error);
+      console.error('API Service - Error type:', typeof error);
+      console.error('API Service - Error keys:', Object.keys(error || {}));
+      throw error;
+    }
   }
 
   async getProductReviews(productId) {
     return this.api.get('/reviews', { params: { productId } });
+  }
+
+  async getUserReviews(userId) {
+    return this.api.get('/reviews/user', { params: { userId } });
   }
 
   // Utility methods
