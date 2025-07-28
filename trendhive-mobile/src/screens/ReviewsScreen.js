@@ -24,6 +24,7 @@ export default function ReviewsScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [orders, setOrders] = useState([]);
   const [userReviews, setUserReviews] = useState([]);
+  const [pendingReviews, setPendingReviews] = useState([]);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'completed'
@@ -39,7 +40,8 @@ export default function ReviewsScreen({ navigation }) {
       setLoading(true);
       await Promise.all([
         loadOrders(),
-        loadUserReviews()
+        loadUserReviews(),
+        loadPendingReviews()
       ]);
     } catch (error) {
       console.error('Error loading reviews data:', error);
@@ -72,15 +74,36 @@ export default function ReviewsScreen({ navigation }) {
     }
   };
 
+  const loadPendingReviews = async () => {
+    try {
+      const response = await apiService.getPendingReviews(user._id);
+      if (Array.isArray(response)) {
+        setPendingReviews(response);
+      }
+    } catch (error) {
+      console.error('Error loading pending reviews:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
   };
 
-  const handleReviewSubmitted = () => {
+  const handleReviewSubmitted = async () => {
     setShowReviewModal(false);
     setSelectedProduct(null);
+    
+    // Remove the product from pending reviews if it was there
+    if (selectedProduct && selectedProduct.isPendingReview) {
+      try {
+        await apiService.removePendingReview(user._id, selectedProduct._id);
+      } catch (error) {
+        console.error('Error removing pending review:', error);
+      }
+    }
+    
     loadData(); // Refresh data
   };
 
@@ -129,6 +152,21 @@ export default function ReviewsScreen({ navigation }) {
   const getProductsNeedingReviews = () => {
     const productsNeedingReviews = [];
     
+    // Add products from pending reviews
+    pendingReviews.forEach(pendingReview => {
+      productsNeedingReviews.push({
+        _id: pendingReview.productId,
+        name: pendingReview.productName,
+        mainImage: pendingReview.productImage,
+        price: pendingReview.productPrice,
+        orderId: pendingReview.orderId,
+        orderDate: pendingReview.createdAt,
+        orderNumber: pendingReview.orderNumber,
+        isPendingReview: true
+      });
+    });
+    
+    // Add products from completed orders that don't have reviews yet
     orders.forEach(order => {
       if (order.status === 'completed' || order.status === 'delivered') {
         const items = order.items || order.products || [];
@@ -137,8 +175,11 @@ export default function ReviewsScreen({ navigation }) {
           const existingReview = userReviews.find(review => 
             review.productId === productId || review.productId === item._id
           );
+          const existingPendingReview = pendingReviews.find(pending => 
+            pending.productId === productId || pending.productId === item._id
+          );
           
-          if (!existingReview) {
+          if (!existingReview && !existingPendingReview) {
             productsNeedingReviews.push({
               ...item,
               orderId: order._id,

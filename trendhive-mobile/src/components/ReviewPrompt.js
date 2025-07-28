@@ -34,9 +34,15 @@ export default function ReviewPrompt({ visible, onClose, products, orderId }) {
     onClose();
   };
 
-  const handleSkip = () => {
-    // Just close the prompt, don't mark reviews as completed
-    // Products will still appear in pending reviews
+  const handleSkip = async () => {
+    // Save products to pending reviews when user clicks "Maybe Later"
+    if (user && products && products.length > 0) {
+      try {
+        await apiService.savePendingReviews(user._id, products, orderId);
+      } catch (error) {
+        console.error('Error saving pending reviews:', error);
+      }
+    }
     onClose();
   };
 

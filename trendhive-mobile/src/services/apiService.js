@@ -214,6 +214,18 @@ class ApiService {
     return this.api.delete(`/reviews/${reviewId}`);
   }
 
+  async savePendingReviews(userId, products, orderId) {
+    return this.api.post('/reviews/pending', { userId, products, orderId });
+  }
+
+  async getPendingReviews(userId) {
+    return this.api.get('/reviews/pending', { params: { userId } });
+  }
+
+  async removePendingReview(userId, productId) {
+    return this.api.delete(`/reviews/pending/${productId}`, { params: { userId } });
+  }
+
   // Utility methods
   async uploadImage(imageData) {
     const formData = new FormData();
