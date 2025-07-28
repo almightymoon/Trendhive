@@ -218,11 +218,11 @@ export default function ReviewsScreen({ navigation }) {
     }));
   };
 
-  const renderProductCard = (product, isReviewed = false) => {
+  const renderProductCard = (product, isReviewed = false, uniqueKey) => {
     const review = isReviewed ? product.review : null;
     
     return (
-      <Card key={product._id} style={[styles.productCard, { backgroundColor: colors.card }]}>
+      <Card key={uniqueKey} style={[styles.productCard, { backgroundColor: colors.card }]}>
         <Card.Content>
           <View style={styles.productRow}>
             <Image
@@ -352,6 +352,15 @@ export default function ReviewsScreen({ navigation }) {
   const pendingProducts = getProductsNeedingReviews();
   const reviewedProducts = getReviewedProducts();
 
+  // Debug: Check for duplicate product IDs
+  const pendingIds = pendingProducts.map(p => p._id);
+  const reviewedIds = reviewedProducts.map(p => p._id);
+  const duplicateIds = pendingIds.filter(id => reviewedIds.includes(id));
+  
+  if (duplicateIds.length > 0) {
+    console.log('Found duplicate product IDs:', duplicateIds);
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CoolHeader
@@ -419,13 +428,13 @@ export default function ReviewsScreen({ navigation }) {
           <View style={styles.content}>
             {activeTab === 'pending' ? (
               pendingProducts.length > 0 ? (
-                pendingProducts.map(product => renderProductCard(product, false))
+                pendingProducts.map((product, index) => renderProductCard(product, false, `pending-${product._id}-${index}`))
               ) : (
                 renderEmptyState('pending')
               )
             ) : (
               reviewedProducts.length > 0 ? (
-                reviewedProducts.map(product => renderProductCard(product, true))
+                reviewedProducts.map((product, index) => renderProductCard(product, true, `completed-${product._id}-${index}`))
               ) : (
                 renderEmptyState('completed')
               )
