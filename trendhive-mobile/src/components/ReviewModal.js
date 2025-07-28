@@ -83,6 +83,7 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
     try {
       const reviewData = {
         productId: productId.toString(), // Ensure it's a string
+        productName: productName, // Include product name
         rating: parseInt(rating), // Ensure it's a number
         comment: comment.trim(),
       };

@@ -30,8 +30,15 @@ export default function ReviewsScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'completed'
 
   useEffect(() => {
-    if (user) {
+    console.log('ReviewsScreen - useEffect triggered');
+    console.log('ReviewsScreen - User from context:', user);
+    console.log('ReviewsScreen - User ID from context:', user?._id || user?.id);
+    
+    if (user && (user._id || user.id)) {
+      console.log('ReviewsScreen - User authenticated, loading data');
       loadData();
+    } else {
+      console.log('ReviewsScreen - No user or user ID, not loading data');
     }
   }, [user]);
 
@@ -52,20 +59,40 @@ export default function ReviewsScreen({ navigation }) {
 
   const loadOrders = async () => {
     try {
-      const response = await apiService.getOrders(user._id);
+      const userId = user?._id || user?.id;
+      console.log('ReviewsScreen - Loading orders for user:', userId);
+      const response = await apiService.getOrders(userId);
+      console.log('ReviewsScreen - Orders response:', response);
       if (response.success || Array.isArray(response)) {
         const ordersData = Array.isArray(response) ? response : response.orders || [];
         setOrders(ordersData);
       }
     } catch (error) {
       console.error('Error loading orders:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
     }
   };
 
   const loadUserReviews = async () => {
     try {
-      console.log('Loading user reviews for user:', user._id);
-      const response = await apiService.getUserReviews(user._id);
+      console.log('ReviewsScreen - loadUserReviews called');
+      console.log('ReviewsScreen - User object:', user);
+      const userId = user?._id || user?.id;
+      console.log('ReviewsScreen - User ID:', userId);
+      console.log('ReviewsScreen - User ID type:', typeof userId);
+      
+      if (!user || !userId) {
+        console.error('ReviewsScreen - No user or user ID available');
+        setUserReviews([]);
+        return;
+      }
+      
+      console.log('Loading user reviews for user:', userId);
+      const response = await apiService.getUserReviews(userId);
       console.log('User reviews response:', response);
       if (response.success || Array.isArray(response)) {
         const reviewsData = Array.isArray(response) ? response : response.reviews || [];
@@ -73,14 +100,21 @@ export default function ReviewsScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Error loading user reviews:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
+      setUserReviews([]);
     }
   };
 
   const loadPendingReviews = async () => {
     try {
-      console.log('Loading pending reviews for user:', user._id);
+      const userId = user?._id || user?.id;
+      console.log('Loading pending reviews for user:', userId);
       console.log('API Service auth token:', apiService.authToken ? 'Present' : 'Missing');
-      const response = await apiService.getPendingReviews(user._id);
+      const response = await apiService.getPendingReviews(userId);
       console.log('Pending reviews response:', response);
       if (Array.isArray(response)) {
         setPendingReviews(response);
@@ -111,10 +145,20 @@ export default function ReviewsScreen({ navigation }) {
     setSelectedProduct(null);
     
     // Remove the product from pending reviews if it was there
-    if (currentProduct && currentProduct.isPendingReview) {
+    if (currentProduct && currentProduct._id) {
       try {
-        console.log('ReviewsScreen - Removing pending review for product:', currentProduct._id);
-        await apiService.removePendingReview(user._id, currentProduct._id);
+        const userId = user?._id || user?.id;
+        // Check if this product is in pending reviews
+        const isPendingReview = pendingReviews.some(pending => 
+          String(pending.productId) === String(currentProduct._id)
+        );
+        
+        if (isPendingReview) {
+          console.log('ReviewsScreen - Removing pending review for product:', currentProduct._id);
+          await apiService.removePendingReview(userId, currentProduct._id);
+        } else {
+          console.log('ReviewsScreen - Product not in pending reviews, no need to remove');
+        }
       } catch (error) {
         console.error('Error removing pending review:', error);
       }
@@ -245,17 +289,18 @@ export default function ReviewsScreen({ navigation }) {
         reviewId: review._id,
         productId: review.productId,
         productName: review.productName,
+        productImage: review.productImage,
         rating: review.rating
       });
       return {
         _id: review.productId,
         name: review.productName,
-        mainImage: review.productImage,
+        mainImage: review.productImage || review.product?.mainImage || review.product?.image || review.product?.images?.[0],
         review: review,
         reviewedAt: review.createdAt
       };
     });
-    console.log('Reviewed products:', reviewedProducts.map(p => ({ id: p._id, name: p.name })));
+    console.log('Reviewed products:', reviewedProducts.map(p => ({ id: p._id, name: p.name, hasImage: !!p.mainImage })));
     return reviewedProducts;
   };
 
@@ -267,7 +312,9 @@ export default function ReviewsScreen({ navigation }) {
         <Card.Content>
           <View style={styles.productRow}>
             <Image
-              source={{ uri: product.mainImage || product.image || product.images?.[0] }}
+              source={{ 
+                uri: product.mainImage || product.image || product.images?.[0] || 'https://via.placeholder.com/100x100?text=No+Image'
+              }}
               style={styles.productImage}
               resizeMode="cover"
             />

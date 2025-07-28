@@ -9,6 +9,10 @@ export async function GET(req) {
     const productId = searchParams.get('productId');
     const userId = searchParams.get('userId');
     
+    console.log('GET /api/reviews - Request URL:', req.url);
+    console.log('GET /api/reviews - Search params:', Object.fromEntries(searchParams.entries()));
+    console.log('GET /api/reviews - Extracted values:', { productId, userId });
+    
     if (productId) {
       // Get reviews for a specific product
       const reviews = await db.collection('reviews')
@@ -37,7 +41,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
     console.log('POST /api/reviews - Request body:', body);
-    const { productId, rating, comment, orderId, reviewId, action } = body;
+    const { productId, productName, rating, comment, orderId, reviewId, action } = body;
     
     console.log('POST /api/reviews - Extracted values:', {
       action,
@@ -185,9 +189,14 @@ export async function POST(req) {
         return Response.json({ error: 'You have already reviewed this product' }, { status: 400 });
       }
 
+      // Get product details to include in review
+      const product = await db.collection('products').findOne({ _id: new ObjectId(productId) });
+      
       // Create the review
       const review = {
         productId: new ObjectId(productId),
+        productName: productName || product?.name || 'Unknown Product',
+        productImage: product?.mainImage || product?.image || product?.images?.[0] || null,
         userId: userId,
         userName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
         userEmail: user.email,

@@ -213,7 +213,22 @@ class ApiService {
   }
 
   async getUserReviews(userId) {
-    return this.api.get('/reviews', { params: { userId } });
+    console.log('API Service - getUserReviews called with userId:', userId);
+    console.log('API Service - Current auth token:', this.authToken ? 'Present' : 'Missing');
+    console.log('API Service - Base URL:', API_CONFIG.BASE_URL);
+    try {
+      const response = await this.api.get('/reviews', { params: { userId } });
+      console.log('API Service - getUserReviews response:', response);
+      return response;
+    } catch (error) {
+      console.error('API Service - getUserReviews error:', error);
+      console.error('API Service - Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
+      throw error;
+    }
   }
 
   async deleteReview(reviewId) {
@@ -263,7 +278,24 @@ class ApiService {
   }
 
   async removePendingReview(userId, productId) {
-    return this.api.delete(`/reviews/pending/${productId}`, { params: { userId } });
+    console.log('API Service - removePendingReview called with userId:', userId, 'productId:', productId);
+    console.log('API Service - Current auth token:', this.authToken ? 'Present' : 'Missing');
+    console.log('API Service - Base URL:', API_CONFIG.BASE_URL);
+    try {
+      const response = await this.api.delete('/reviews/pending', { 
+        params: { userId, productId } 
+      });
+      console.log('API Service - removePendingReview response:', response);
+      return response;
+    } catch (error) {
+      console.error('API Service - removePendingReview error:', error);
+      console.error('API Service - Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
+      throw error;
+    }
   }
 
   // Utility methods
