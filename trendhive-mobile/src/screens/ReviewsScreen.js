@@ -64,7 +64,9 @@ export default function ReviewsScreen({ navigation }) {
 
   const loadUserReviews = async () => {
     try {
+      console.log('Loading user reviews for user:', user._id);
       const response = await apiService.getUserReviews(user._id);
+      console.log('User reviews response:', response);
       if (response.success || Array.isArray(response)) {
         const reviewsData = Array.isArray(response) ? response : response.reviews || [];
         setUserReviews(reviewsData);
@@ -76,7 +78,9 @@ export default function ReviewsScreen({ navigation }) {
 
   const loadPendingReviews = async () => {
     try {
+      console.log('Loading pending reviews for user:', user._id);
       const response = await apiService.getPendingReviews(user._id);
+      console.log('Pending reviews response:', response);
       if (Array.isArray(response)) {
         setPendingReviews(response);
       }
@@ -152,6 +156,11 @@ export default function ReviewsScreen({ navigation }) {
   const getProductsNeedingReviews = () => {
     const productsNeedingReviews = [];
     
+    console.log('Getting products needing reviews...');
+    console.log('Pending reviews count:', pendingReviews.length);
+    console.log('Orders count:', orders.length);
+    console.log('User reviews count:', userReviews.length);
+    
     // Add products from pending reviews
     pendingReviews.forEach(pendingReview => {
       productsNeedingReviews.push({
@@ -166,31 +175,36 @@ export default function ReviewsScreen({ navigation }) {
       });
     });
     
-    // Add products from completed orders that don't have reviews yet
+    // Add products from orders that don't have reviews yet
     orders.forEach(order => {
-      if (order.status === 'completed' || order.status === 'delivered') {
-        const items = order.items || order.products || [];
-        items.forEach(item => {
-          const productId = item._id || item.id || item.productId;
-          const existingReview = userReviews.find(review => 
-            review.productId === productId || review.productId === item._id
-          );
-          const existingPendingReview = pendingReviews.find(pending => 
-            pending.productId === productId || pending.productId === item._id
-          );
-          
-          if (!existingReview && !existingPendingReview) {
-            productsNeedingReviews.push({
-              ...item,
-              orderId: order._id,
-              orderDate: order.createdAt,
-              orderNumber: order.orderNumber
-            });
-          }
-        });
-      }
+      console.log('Processing order:', order.orderNumber, 'Status:', order.status);
+      // Allow reviews for any order status (pending, completed, delivered, etc.)
+      const items = order.items || order.products || [];
+      console.log('Order items count:', items.length);
+      items.forEach(item => {
+        const productId = item._id || item.id || item.productId;
+        const existingReview = userReviews.find(review => 
+          review.productId === productId || review.productId === item._id
+        );
+        const existingPendingReview = pendingReviews.find(pending => 
+          pending.productId === productId || pending.productId === item._id
+        );
+        
+        if (!existingReview && !existingPendingReview) {
+          console.log('Adding product for review:', item.name || item.title);
+          productsNeedingReviews.push({
+            ...item,
+            orderId: order._id,
+            orderDate: order.createdAt,
+            orderNumber: order.orderNumber
+          });
+        } else {
+          console.log('Product already reviewed or pending:', item.name || item.title);
+        }
+      });
     });
 
+    console.log('Total products needing reviews:', productsNeedingReviews.length);
     return productsNeedingReviews;
   };
 

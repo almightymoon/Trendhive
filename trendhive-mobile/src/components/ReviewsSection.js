@@ -5,12 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import ReviewModal from './ReviewModal';
 
 export default function ReviewsSection({ productId, productName }) {
   const { colors } = useTheme();
@@ -19,6 +21,8 @@ export default function ReviewsSection({ productId, productName }) {
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedReview, setSelectedReview] = useState(null);
 
 
   useEffect(() => {
@@ -64,36 +68,97 @@ export default function ReviewsSection({ productId, productName }) {
     return stars;
   };
 
+  const handleEditReview = (review) => {
+    setSelectedReview(review);
+    setShowReviewModal(true);
+  };
+
+  const handleDeleteReview = async (review) => {
+    Alert.alert(
+      'Delete Review',
+      'Are you sure you want to delete this review? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await apiService.deleteReview(review._id);
+              if (response.success) {
+                Alert.alert('Success', 'Review deleted successfully');
+                loadReviews(); // Refresh reviews
+              } else {
+                Alert.alert('Error', response.error || 'Failed to delete review');
+              }
+            } catch (error) {
+              console.error('Error deleting review:', error);
+              Alert.alert('Error', 'Failed to delete review. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleReviewSubmitted = () => {
+    setShowReviewModal(false);
+    setSelectedReview(null);
+    loadReviews(); // Refresh reviews
+  };
 
 
-  const renderReviewItem = (review) => (
-    <View key={review._id} style={[styles.reviewItem, { borderBottomColor: colors.border }]}>
-      <View style={styles.reviewHeader}>
-        <View style={styles.reviewerInfo}>
-          <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
-            <Ionicons name="person" size={20} color={colors.textSecondary} />
-          </View>
-          <View>
-            <Text style={[styles.reviewerName, { color: colors.text }]}>
-              {review.userName || 'Anonymous'}
-            </Text>
-            <View style={styles.starsContainer}>
-              {renderStars(review.rating)}
+
+  const renderReviewItem = (review) => {
+    const isUserReview = user && review.userId === user._id;
+    
+    return (
+      <View key={review._id} style={[styles.reviewItem, { borderBottomColor: colors.border }]}>
+        <View style={styles.reviewHeader}>
+          <View style={styles.reviewerInfo}>
+            <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
+              <Ionicons name="person" size={20} color={colors.textSecondary} />
+            </View>
+            <View>
+              <Text style={[styles.reviewerName, { color: colors.text }]}>
+                {review.userName || 'Anonymous'}
+              </Text>
+              <View style={styles.starsContainer}>
+                {renderStars(review.rating)}
+              </View>
             </View>
           </View>
+          <View style={styles.reviewActions}>
+            <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>
+              {new Date(review.createdAt).toLocaleDateString()}
+            </Text>
+            {isUserReview && (
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={[styles.actionButton, { borderColor: colors.border }]}
+                  onPress={() => handleEditReview(review)}
+                >
+                  <Ionicons name="create-outline" size={16} color={colors.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, { borderColor: colors.error }]}
+                  onPress={() => handleDeleteReview(review)}
+                >
+                  <Ionicons name="trash-outline" size={16} color={colors.error} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
-        <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>
-          {new Date(review.createdAt).toLocaleDateString()}
-        </Text>
+        
+        {review.comment && (
+          <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>
+            {review.comment}
+          </Text>
+        )}
       </View>
-      
-      {review.comment && (
-        <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>
-          {review.comment}
-        </Text>
-      )}
-    </View>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -107,42 +172,49 @@ export default function ReviewsSection({ productId, productName }) {
   }
 
   return (
-    <Card style={[styles.container, { backgroundColor: colors.card }]}>
-      <Card.Content>
-        <View style={styles.header}>
-          <Title style={[styles.title, { color: colors.text }]}>Reviews</Title>
-          <View style={styles.ratingSummary}>
-            <View style={styles.averageRating}>
-              <Text style={[styles.ratingNumber, { color: colors.text }]}>{averageRating.toFixed(1)}</Text>
-              <View style={styles.starsContainer}>
-                {renderStars(Math.round(averageRating))}
+    <>
+      <Card style={[styles.container, { backgroundColor: colors.card }]}>
+        <Card.Content>
+          <View style={styles.header}>
+            <Title style={[styles.title, { color: colors.text }]}>Reviews</Title>
+            <View style={styles.ratingSummary}>
+              <View style={styles.averageRating}>
+                <Text style={[styles.ratingNumber, { color: colors.text }]}>{averageRating.toFixed(1)}</Text>
+                <View style={styles.starsContainer}>
+                  {renderStars(Math.round(averageRating))}
+                </View>
               </View>
+              <Text style={[styles.totalReviews, { color: colors.textSecondary }]}>
+                {totalReviews} review{totalReviews !== 1 ? 's' : ''}
+              </Text>
             </View>
-            <Text style={[styles.totalReviews, { color: colors.textSecondary }]}>
-              {totalReviews} review{totalReviews !== 1 ? 's' : ''}
-            </Text>
           </View>
-        </View>
 
+          {reviews.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="star-outline" size={48} color={colors.textTertiary} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No reviews yet</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
+                No reviews yet for this product
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={styles.reviewsList}>
+              {reviews.map(renderReviewItem)}
+            </ScrollView>
+          )}
+        </Card.Content>
+      </Card>
 
-
-        {reviews.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="star-outline" size={48} color={colors.textTertiary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No reviews yet</Text>
-            <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
-              No reviews yet for this product
-            </Text>
-          </View>
-        ) : (
-          <ScrollView style={styles.reviewsList}>
-            {reviews.map(renderReviewItem)}
-          </ScrollView>
-        )}
-
-
-      </Card.Content>
-    </Card>
+      <ReviewModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        productId={productId}
+        productName={productName}
+        onReviewSubmitted={handleReviewSubmitted}
+        existingReview={selectedReview}
+      />
+    </>
   );
 }
 
@@ -224,6 +296,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 8,
+  },
+  reviewActions: {
+    alignItems: 'flex-end',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  actionButton: {
+    padding: 4,
+    borderRadius: 4,
+    borderWidth: 1,
   },
   reviewerInfo: {
     flexDirection: 'row',

@@ -207,7 +207,7 @@ class ApiService {
   }
 
   async getUserReviews(userId) {
-    return this.api.get('/reviews/user', { params: { userId } });
+    return this.api.get('/reviews', { params: { userId } });
   }
 
   async deleteReview(reviewId) {
