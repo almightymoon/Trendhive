@@ -38,6 +38,7 @@ import AdvancedSearchScreen from './src/screens/AdvancedSearchScreen';
 import LoyaltyScreen from './src/screens/LoyaltyScreen';
 import FlashSalesScreen from './src/screens/FlashSalesScreen';
 import CacheManagerScreen from './src/screens/CacheManagerScreen';
+import ApiTest from './src/components/ApiTest';
 
 // Import contexts
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
@@ -239,6 +240,11 @@ function MainAppNavigator() {
         name="CacheManager" 
         component={CacheManagerScreen}
         options={{ title: 'Cache Management' }}
+      />
+      <Stack.Screen 
+        name="ApiTest" 
+        component={ApiTest}
+        options={{ title: 'API Test' }}
       />
       <Stack.Screen 
         name="SignIn" 

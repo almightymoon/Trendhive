@@ -193,30 +193,30 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
               {productName}
             </Text>
 
-            <View style={styles.ratingSection}>
+          <View style={styles.ratingSection}>
               <Text style={[styles.ratingLabel, { color: colors.text }]}>Your Rating</Text>
-              <View style={styles.starsContainer}>
-                {renderStars()}
-              </View>
+            <View style={styles.starsContainer}>
+              {renderStars()}
+            </View>
               {rating > 0 && (
                 <Text style={[styles.ratingText, { color: colors.primary }]}>
                   {getRatingText()}
-                </Text>
+            </Text>
               )}
-            </View>
+          </View>
 
-            <View style={styles.commentSection}>
+          <View style={styles.commentSection}>
               <Text style={[styles.commentLabel, { color: colors.text }]}>Your Review</Text>
-              <TextInput
-                mode="outlined"
+            <TextInput
+              mode="outlined"
                 multiline
                 numberOfLines={6}
                 placeholder="Share your experience with this product..."
-                value={comment}
-                onChangeText={setComment}
-                style={styles.commentInput}
-                theme={{
-                  colors: {
+              value={comment}
+              onChangeText={setComment}
+              style={styles.commentInput}
+              theme={{
+                colors: {
                     primary: colors.primary,
                     text: colors.text,
                     placeholder: colors.textSecondary,
@@ -230,10 +230,10 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
                     secondary: colors.primary,
                     secondaryContainer: colors.primary,
                     onSecondaryContainer: '#ffffff',
-                  }
-                }}
-              />
-            </View>
+                }
+              }}
+            />
+          </View>
           </ScrollView>
 
           <View style={styles.modalFooter}>
@@ -245,16 +245,16 @@ export default function ReviewModal({ visible, onClose, productId, productName, 
             >
               Cancel
             </Button>
-                                    <Button
-                          mode="contained"
-                          onPress={handleSubmitReview}
-                          loading={loading}
-                          disabled={loading || rating === 0 || !comment.trim()}
+            <Button
+              mode="contained"
+              onPress={handleSubmitReview}
+              loading={loading}
+              disabled={loading || rating === 0 || !comment.trim()}
                           style={styles.submitButton}
                           buttonColor={colors.primary}
-                        >
+            >
                           {existingReview ? 'Update Review' : 'Submit Review'}
-                        </Button>
+            </Button>
           </View>
         </View>
       </View>

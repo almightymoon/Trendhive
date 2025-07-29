@@ -14,6 +14,7 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useTheme } from '../contexts/ThemeContext';
 import CoolHeader from '../components/CoolHeader';
 import ThemeToggle from '../components/ThemeToggle';
+import ApiTest from '../components/ApiTest';
 
 export default function ProfileScreen({ navigation }) {
   const { colors } = useTheme();
@@ -153,6 +154,11 @@ export default function ProfileScreen({ navigation }) {
       title: 'Cache Management',
       icon: 'hardware-chip-outline',
       onPress: () => navigation.navigate('CacheManager')
+    },
+    {
+      title: 'API Test',
+      icon: 'wifi-outline',
+      onPress: () => navigation.navigate('ApiTest')
     },
   ];
 

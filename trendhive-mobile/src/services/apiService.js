@@ -1,10 +1,15 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { API_CONFIG } from '../config/api';
 import cacheService from './cacheService';
 
 class ApiService {
   constructor() {
     console.log('API Service: Initializing with base URL:', API_CONFIG.BASE_URL);
+    console.log('API Service: Development mode:', __DEV__);
+    console.log('API Service: Platform:', Platform.OS);
+    console.log('API Service: Full config:', API_CONFIG);
+    
     this.api = axios.create({
       baseURL: API_CONFIG.BASE_URL,
       timeout: API_CONFIG.TIMEOUT,
@@ -57,9 +62,55 @@ class ApiService {
     this.authToken = token;
   }
 
+  // Test API connectivity
+  async testConnection() {
+    try {
+      console.log('API Service: Testing connection to:', API_CONFIG.BASE_URL);
+      console.log('API Service: Development mode:', __DEV__);
+      console.log('API Service: Platform:', Platform.OS);
+      
+      const response = await this.api.get('/health');
+      console.log('API Service: Connection test successful:', response);
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('API Service: Connection test failed:', error);
+      console.error('API Service: Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config,
+        code: error.code,
+        errno: error.errno
+      });
+      
+      // Additional debugging for network issues
+      if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNREFUSED') {
+        console.error('API Service: Network error detected - possible firewall or DNS issue');
+      }
+      
+      return { success: false, error };
+    }
+  }
+
   // Authentication
   async signIn(email, password) {
-    return this.api.post('/auth/signin', { email, password });
+    console.log('API Service: signIn called with:', { email, password: password ? '[HIDDEN]' : 'MISSING' });
+    console.log('API Service: Making POST request to:', `${API_CONFIG.BASE_URL}/auth/signin`);
+    
+    try {
+      const response = await this.api.post('/auth/signin', { email, password });
+      console.log('API Service: signIn response:', response);
+      return response;
+    } catch (error) {
+      console.error('API Service: signIn error:', error);
+      console.error('API Service: signIn error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
+      throw error;
+    }
   }
 
   async signUp(userData) {

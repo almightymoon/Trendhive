@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "TrendHive",
-    "slug": "trendhive",
+    "slug": "trendhive-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -15,27 +15,24 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.trendhive.app"
+      "bundleIdentifier": "com.moontech94.trendhive"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#10B981"
       },
-      "package": "com.trendhive.app",
+      "package": "com.moontech94.trendhive",
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
-      ]
+      ],
+      "networkSecurityConfig": {
+        "cleartextTrafficPermitted": true
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "8f8eb8c9-be5c-4438-b77d-60e3db6e2169"
-      }
-    },
-    "owner": "almightymoon"
+    }
   }
 }

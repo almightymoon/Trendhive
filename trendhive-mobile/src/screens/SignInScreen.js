@@ -82,12 +82,14 @@ export default function SignInScreen({ navigation }) {
 
     setLoading(true);
     try {
+      console.log('SignInScreen: Attempting sign in with:', { email: formData.email, password: formData.password ? '[HIDDEN]' : 'MISSING' });
       const response = await signIn(formData.email, formData.password);
-      if (response.success || response.message) {
-        signIn(response.token, response.user);
+      console.log('SignInScreen: Sign in response:', response);
+      
+      if (response && (response.success || response.token)) {
         navigation.navigate('MainTabs');
       } else {
-        setErrors({ general: response.error || 'Sign in failed' });
+        setErrors({ general: response?.error || 'Sign in failed' });
       }
     } catch (error) {
       console.error('Sign in error:', error);
