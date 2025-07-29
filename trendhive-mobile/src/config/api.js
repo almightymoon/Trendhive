@@ -2,7 +2,8 @@
 const isDevelopment = __DEV__;
 
 export const API_CONFIG = {
-  BASE_URL: 'http://217.196.51.104:4000/api',  // Your working backend URL
+  // Use the working backend URL
+  BASE_URL: 'http://217.196.51.104:4000/api',
   TIMEOUT: 15000,
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',

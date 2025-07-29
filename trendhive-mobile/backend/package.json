@@ -2,29 +2,26 @@
   "name": "trendhive-backend",
   "version": "1.0.0",
   "description": "TrendHive Mobile App Backend",
-  "main": "server.prod.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.prod.js",
-    "dev": "nodemon server.prod.js",
-    "build": "echo 'No build step required'",
-    "test": "echo 'No tests specified'"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "tunnel": "npx localtunnel --port 4000 --subdomain trendhive-backend"
   },
-  "keywords": ["trendhive", "backend", "api", "mobile"],
-  "author": "TrendHive Team",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "mongodb": "^6.3.0",
-    "bcrypt": "^5.1.1",
+    "mongodb": "^5.7.0",
+    "bcrypt": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.1",
+    "localtunnel": "^2.0.2"
   },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  }
+  "keywords": ["trendhive", "backend", "api", "mobile"],
+  "author": "TrendHive Team",
+  "license": "MIT"
 } 
